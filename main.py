@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Pickleball AI Enterprise Engine - Smart Rating & IP-Camera VAR Edition",
-    version="2.6.0"
+    version="2.6.1"
 )
 
 app.add_middleware(
@@ -40,7 +40,7 @@ def generate_secure_qr_signature(player_id: str, rating: str, winrate: str) -> s
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:12]
 
 def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str:
-    """Tải và làm sạch URL từ YouTube, Shorts, TikTok, Facebook, Instagram"""
+    """Tải và làm sạch URL từ YouTube (bao gồm link youtu.be, Shorts), TikTok, Facebook, Instagram"""
     try:
         import yt_dlp
 
@@ -51,13 +51,19 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         if urls_found:
             clean_url = urls_found[0]
 
+        # Tự động chuẩn hóa link rút gọn youtu.be thành youtube.com/watch?v=
+        if "youtu.be/" in clean_url:
+            video_id = clean_url.split("youtu.be/")[1].split("?")[0].split("&")[0]
+            clean_url = f"https://www.youtube.com/watch?v={video_id}"
+
+        # Xóa các tham số tracking của YouTube
         if "?si=" in clean_url:
             clean_url = clean_url.split("?si=")[0]
         if "&si=" in clean_url:
             clean_url = clean_url.split("&si=")[0]
 
         ydl_opts = {
-            'format': 'b[ext=mp4]/bestpass/best',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
