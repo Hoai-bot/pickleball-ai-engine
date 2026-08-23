@@ -8,12 +8,12 @@ import json
 import time
 import numpy as np
 from typing import Optional, List, Dict
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Production Edition",
-    version="3.0.0"
+    title="Pickleball AI Enterprise Engine - Player Rating & Visual Profile Edition",
+    version="3.1.0"
 )
 
 app.add_middleware(
@@ -24,10 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔒 1. SECURITY: Đọc Secret Key từ Environment Variable (Tránh Hardcode)
 SECRET_KEY = os.getenv("SECRET_KEY", "PICKLEBALL_AI_DEFAULT_SECRET_KEY_PROD_2026")
-
-# 💾 2. SESSION STORE: Khởi tạo Bộ nhớ Trận đấu (Sẵn sàng mở rộng sang Redis/DB)
 MATCH_SESSIONS: Dict[str, dict] = {}
 
 DICT_I18N = {
@@ -58,7 +55,6 @@ DICT_I18N = {
 }
 
 def calculate_angle(a, b, c):
-    """Tính góc sinh học giữa 3 khớp xương"""
     a, b, c = np.array(a), np.array(b), np.array(c)
     radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
     angle = np.abs(radians * 180.0 / np.pi)
@@ -67,12 +63,10 @@ def calculate_angle(a, b, c):
     return round(angle, 1)
 
 def generate_secure_qr_signature(player_id: str, rating: str, winrate: str) -> str:
-    """Tạo chữ ký số bảo mật HMAC-SHA256"""
     raw_data = f"{player_id}:{rating}:{winrate}"
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:12]
 
 def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str:
-    """Tải và làm sạch URL YouTube, Shorts, TikTok, Facebook"""
     try:
         import yt_dlp
         clean_url = url.strip()
@@ -110,7 +104,6 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         return None
 
 def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", duration_sec: int = 5) -> bool:
-    """Trích xuất luồng IP Camera RTSP"""
     try:
         cap = cv2.VideoCapture(rtsp_url)
         if not cap.isOpened():
@@ -139,12 +132,8 @@ def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", durat
         print(f"❌ RTSP Error: {e}")
         return False
 
-# 👁️ 3. COMPUTER VISION: Thuật toán lọc màu HSV kép + Kiểm tra độ tròn (Circularity) chống nhiễu
 def detect_ball_enhanced(frame):
-    """Lọc bóng nâng cao: Kết hợp dải màu kép + Phân tích độ tròn Contour"""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-    # Lọc màu vàng chanh / xanh neon đặc trưng của bóng Pickleball
     lower_yellow1 = np.array([20, 100, 100])
     upper_yellow1 = np.array([38, 255, 255])
     
@@ -160,23 +149,19 @@ def detect_ball_enhanced(frame):
                 if perimeter == 0:
                     continue
                 circularity = 4 * np.pi * (area / (perimeter * perimeter))
-                if circularity > 0.5:  # Lọc các vật thể hình tròn
+                if circularity > 0.5:
                     ((x, y), radius) = cv2.minEnclosingCircle(c)
                     return (int(x), int(y))
     return None
 
-# 📏 4. CALIBRATION: Căn chỉnh đường Kitchen linh hoạt theo Tọa độ thực tế (Homography Ready)
 def check_kitchen_violation(foot_y, height, custom_kitchen_y=None):
     kitchen_limit = custom_kitchen_y if custom_kitchen_y is not None else int(height * 0.45)
     return foot_y <= kitchen_limit + 5
 
 @app.get("/")
 def root():
-    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.0.0 - Production Edition"}
+    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.1.0 - Rating & Visual Profile Edition"}
 
-# =====================================================================
-# 🌟 SYSTEM 1: PVNA SMART RATING & PLAYER ANALYSIS
-# =====================================================================
 @app.post("/api/analyze-video")
 def analyze_video(
     file: UploadFile = File(None),
@@ -184,18 +169,33 @@ def analyze_video(
     camera_rtsp_url: Optional[str] = Form(None),
     lang: Optional[str] = Form("vi"),
     player_position: Optional[str] = Form("right"),
+    shirt_color: Optional[str] = Form(None, description="Màu áo VĐV (Ví dụ: Red, Blue, White)"),
+    headwear: Optional[str] = Form(None, description="Mũ/Nón/Băng trán (Ví dụ: Cap, Visor, None)"),
+    body_type: Optional[str] = Form("athletic", description="Thể hình VĐV: athletic, slim, average, heavy"),
     player_tier: Optional[str] = Form("intermediate"),
     match_wins: Optional[str] = Form("0"),
     total_matches: Optional[str] = Form("0"),
     profile_result_url: Optional[str] = Form(None),
     historical_winrate: Optional[str] = Form("60.0"),
-    custom_kitchen_y: Optional[int] = Form(None, description="Tọa độ Y vạch Kitchen thực tế (Calibration)"),
+    custom_kitchen_y: Optional[int] = Form(None),
     enable_in_out_check: Optional[str] = Form("true"),
     enable_heatmap: Optional[str] = Form("true"),
     enable_kitchen_var: Optional[str] = Form("true")
 ):
     selected_lang = "en" if str(lang).lower() == "en" else "vi"
     t = DICT_I18N[selected_lang]
+
+    # --- 🧘‍♂️ TÍNH TOÁN HỆ SỐ THỂ HÌNH VÀ TRANG PHỤC ---
+    body_type_clean = str(body_type).lower() if body_type and body_type != "string" else "athletic"
+    body_mobility_factor = {
+        "athletic": 1.05,   # Thể hình thể thao -> Tăng nhẹ điểm cơ động
+        "slim": 1.00,       # Thể hình thon gọn
+        "average": 0.98,    # Thể hình trung bình
+        "heavy": 0.92       # Thể hình đậm người
+    }.get(body_type_clean, 1.00)
+
+    shirt_str = shirt_color.strip() if shirt_color and shirt_color != "string" else ("Chưa rõ" if selected_lang == "vi" else "Unspecified")
+    headwear_str = headwear.strip() if headwear and headwear != "string" else ("Không" if selected_lang == "vi" else "None")
 
     try:
         wins_cnt = int(match_wins) if match_wins and match_wins != "string" else 0
@@ -390,7 +390,7 @@ def analyze_video(
 
     elbow_score = max(0, 1.0 - abs(avg_elbow - 117.5) / 25.0)
     knee_score = max(0, 1.0 - abs(avg_knee - 133.0) / 25.0)
-    base_form = 2.0 + (elbow_score * 0.8) + (knee_score * 0.7)
+    base_form = (2.0 + (elbow_score * 0.8) + (knee_score * 0.7)) * body_mobility_factor
 
     confidence_factor = 0.65 if duration_sec < 15 else (0.85 if duration_sec < 60 else 1.0)
     winrate_bonus = ((winrate_val - 50.0) / 100.0) * 0.4
@@ -407,7 +407,6 @@ def analyze_video(
         clean_profile_url = clean_profile_url.split("[")[0].strip()
 
     signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%")
-
     video_src_text = t["source_rtsp"] if clean_rtsp else (t["source_url"] if clean_url else t["source_file"])
 
     return {
@@ -417,6 +416,12 @@ def analyze_video(
         "duration_sec": duration_sec,
         "calculated_rating": rating_str,
         "tournament_tier": tier_info["label"],
+        "player_visual_profile": {
+            "body_type": body_type_clean.capitalize(),
+            "shirt_color": shirt_str,
+            "headwear": headwear_str,
+            "mobility_factor": f"{body_mobility_factor}x"
+        },
         "match_record": {
             "wins": wins_cnt,
             "total_matches": total_cnt,
@@ -441,113 +446,3 @@ def analyze_video(
             "signature": signature
         }
     }
-
-# =====================================================================
-# 🏆 SYSTEM 2: TOURNAMENT CONTROLLER & ASYNC VAR
-# =====================================================================
-@app.post("/api/tournament/start-match")
-def start_match(
-    match_id: str = Form(..., description="Mã trận đấu, ví dụ: MATCH-101"),
-    court_number: str = Form("Court 1"),
-    player_a: str = Form("Đội A"),
-    player_b: str = Form("Đội B"),
-    rtsp_url: str = Form(...)
-):
-    """BTC tạo trận đấu mới"""
-    MATCH_SESSIONS[match_id] = {
-        "court": court_number,
-        "player_a": player_a,
-        "player_b": player_b,
-        "rtsp_url": rtsp_url,
-        "start_time": time.strftime("%H:%M:%S - %d/%m/%Y"),
-        "var_logs": []
-    }
-    return {
-        "success": True,
-        "message": f"Đã khởi tạo trận {match_id} tại {court_number}",
-        "match_info": MATCH_SESSIONS[match_id]
-    }
-
-@app.post("/api/tournament/referee-check-var")
-def referee_check_var(
-    match_id: str = Form(...),
-    lang: Optional[str] = Form("vi"),
-    custom_kitchen_y: Optional[int] = Form(None)
-):
-    """Trọng tài bấm 1-Click để kiểm tra VAR 5s gần nhất"""
-    if match_id not in MATCH_SESSIONS:
-        raise HTTPException(status_code=404, detail="Không tìm thấy trận đấu!")
-
-    session = MATCH_SESSIONS[match_id]
-    rtsp_url = session["rtsp_url"]
-    temp_path = f"temp_var_{match_id}_{int(time.time())}.mp4"
-
-    success = capture_rtsp_stream(rtsp_url, temp_path, duration_sec=5)
-    if not success:
-        raise HTTPException(status_code=400, detail="Không thể kết nối Camera IP!")
-
-    cap = cv2.VideoCapture(temp_path)
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 720
-
-    fault_detected = False
-    violating_foot = ""
-    selected_lang = "en" if str(lang).lower() == "en" else "vi"
-    t = DICT_I18N[selected_lang]
-
-    try:
-        import mediapipe as mp
-        try:
-            mp_pose = mp.solutions.pose
-        except AttributeError:
-            import mediapipe.python.solutions.pose as mp_pose
-
-        with mp_pose.Pose(static_image_mode=False, model_complexity=0) as pose:
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = pose.process(rgb_frame)
-
-                if results.pose_landmarks:
-                    lm = results.pose_landmarks.landmark
-                    r_foot_y = int(lm[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX.value].y * height)
-                    l_foot_y = int(lm[mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value].y * height)
-
-                    if check_kitchen_violation(r_foot_y, height, custom_kitchen_y):
-                        fault_detected = True
-                        violating_foot = t["fault_right"]
-                        break
-                    elif check_kitchen_violation(l_foot_y, height, custom_kitchen_y):
-                        fault_detected = True
-                        violating_foot = t["fault_left"]
-                        break
-    except Exception as e:
-        print(f"VAR Error: {e}")
-    finally:
-        cap.release()
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-    decision = violating_foot if fault_detected else t["clean"]
-    log_entry = {
-        "timestamp": time.strftime("%H:%M:%S"),
-        "decision": decision,
-        "status": "FAULT" if fault_detected else "CLEAN"
-    }
-    MATCH_SESSIONS[match_id]["var_logs"].append(log_entry)
-
-    return {
-        "success": True,
-        "match_id": match_id,
-        "referee_decision": decision,
-        "status": "FOOT_FAULT" if fault_detected else "NO_FAULT",
-        "timestamp": log_entry["timestamp"]
-    }
-
-@app.get("/api/tournament/match-summary/{match_id}")
-def get_match_summary(match_id: str):
-    """BTC xem lại nhật ký VAR toàn bộ trận đấu"""
-    if match_id not in MATCH_SESSIONS:
-        raise HTTPException(status_code=404, detail="Không tìm thấy trận đấu!")
-    return MATCH_SESSIONS[match_id]
