@@ -7,14 +7,15 @@ import hmac
 import hashlib
 import json
 import time
+import uuid
 import numpy as np
 from typing import Optional, List, Dict
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Homography & Async Matrix Edition",
-    version="3.4.0"
+    title="Pickleball AI Enterprise Engine - Ultimate Production Edition",
+    version="3.5.0"
 )
 
 app.add_middleware(
@@ -27,6 +28,7 @@ app.add_middleware(
 
 SECRET_KEY = os.getenv("SECRET_KEY", "PICKLEBALL_AI_DEFAULT_SECRET_KEY_PROD_2026")
 MATCH_SESSIONS: Dict[str, dict] = {}
+BACKGROUND_TASKS_STORE: Dict[str, dict] = {}
 
 DICT_I18N = {
     "vi": {
@@ -67,23 +69,30 @@ def generate_secure_qr_signature(player_id: str, rating: str, winrate: str) -> s
     raw_data = f"{player_id}:{rating}:{winrate}"
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:12]
 
-# 📐 1. MA TRẬN HOMOGRAPHY: Biến đổi góc nghiêng Camera về mặt phẳng 2D chuẩn (Top-down Court)
+# 📐 AUTO-SORTING HOMOGRAPHY: Tự động sắp xếp 4 góc sân đúng chuẩn [Top-Left, Top-Right, Bottom-Right, Bottom-Left]
+def order_court_points(pts):
+    pts = np.array(pts, dtype="float32")
+    rect = np.zeros((4, 2), dtype="float32")
+    
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)] # Top-Left
+    rect[2] = pts[np.argmax(s)] # Bottom-Right
+    
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)] # Top-Right
+    rect[3] = pts[np.argmax(diff)] # Bottom-Left
+    return rect
+
 def transform_point_homography(x, y, src_pts):
-    """
-    src_pts: List 4 điểm góc sân thực tế thu được từ Camera [(x1,y1), (x2,y2), (x3,y3), (x4,y4)]
-    Biến đổi tọa độ Camera sang Tọa độ chuẩn 2D (0-100% Sân)
-    """
     try:
         if not src_pts or len(src_pts) != 4:
             return x, y, False
 
-        pts_src = np.array(src_pts, dtype=np.float32)
-        # Khung hình chuẩn 2D (Tỷ lệ sân Pickleball 44ft x 20ft ~ 100x45 units)
+        # Sắp xếp lại thứ tự điểm tự động tránh lỗi truyền tọa độ rác từ client
+        ordered_pts = order_court_points(src_pts)
         pts_dst = np.array([[0, 0], [100, 0], [100, 100], [0, 100]], dtype=np.float32)
 
-        # Tính ma trận Homography
-        h_matrix, _ = cv2.findHomography(pts_src, pts_dst)
-        
+        h_matrix, _ = cv2.findHomography(ordered_pts, pts_dst)
         point = np.array([[[x, y]]], dtype=np.float32)
         transformed_point = cv2.perspectiveTransform(point, h_matrix)
         
@@ -93,7 +102,7 @@ def transform_point_homography(x, y, src_pts):
         is_in = (0.0 <= norm_x <= 100.0) and (0.0 <= norm_y <= 100.0)
         return norm_x, norm_y, is_in
     except Exception as e:
-        print(f"Homography Transformation Error: {e}")
+        print(f"Homography Error: {e}")
         return x, y, False
 
 def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str:
@@ -185,101 +194,43 @@ def check_kitchen_violation(foot_y, height, custom_kitchen_y=None):
 
 @app.get("/")
 def root():
-    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.4.0 - Homography Edition"}
+    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.5.0 - Ultimate Edition"}
 
 # =====================================================================
-# 🌟 SYSTEM 1: PVNA SMART RATING & PRECISION HOMOGRAPHY IN/OUT
+# 🌟 SYSTEM 1: PVNA SMART RATING & ASYNC TASK QUEUE
 # =====================================================================
-@app.post("/api/analyze-video")
-def analyze_video(
-    file: UploadFile = File(None),
-    video_url: Optional[str] = Form(None),
-    camera_rtsp_url: Optional[str] = Form(None),
-    lang: Optional[str] = Form("vi"),
-    player_position: Optional[str] = Form("right"),
-    shirt_color: Optional[str] = Form(None),
-    headwear: Optional[str] = Form(None),
-    body_type: Optional[str] = Form("athletic"),
-    player_tier: Optional[str] = Form("intermediate"),
-    match_wins: Optional[str] = Form("0"),
-    total_matches: Optional[str] = Form("0"),
-    profile_result_url: Optional[str] = Form(None),
-    historical_winrate: Optional[str] = Form("60.0"),
-    custom_kitchen_y: Optional[int] = Form(None),
-    court_corners_json: Optional[str] = Form(None, description="Chuỗi JSON 4 góc sân Homography Calibration: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]"),
-    enable_in_out_check: Optional[str] = Form("true"),
-    enable_heatmap: Optional[str] = Form("true"),
-    enable_kitchen_var: Optional[str] = Form("true")
+
+def process_video_async_task(
+    task_id: str,
+    temp_video_path: str,
+    selected_lang: str,
+    player_position: str,
+    shirt_color: str,
+    headwear: str,
+    body_type: str,
+    player_tier: str,
+    wins_cnt: int,
+    total_cnt: int,
+    winrate_val: float,
+    winrate_source: str,
+    clean_profile_url: str,
+    custom_kitchen_y: Optional[int],
+    src_homography_pts: Optional[list],
+    in_out_bool: bool,
+    heatmap_bool: bool,
+    kitchen_bool: bool,
+    clean_rtsp: bool,
+    clean_url: bool
 ):
-    selected_lang = "en" if str(lang).lower() == "en" else "vi"
+    """Hàm chạy ngầm xử lý AI dưới Background Task không làm nghẽn API"""
     t = DICT_I18N[selected_lang]
-
-    # Giải mã tọa độ 4 góc sân calibration nếu có
-    src_homography_pts = None
-    if court_corners_json and court_corners_json != "string":
-        try:
-            parsed_pts = json.loads(court_corners_json)
-            if len(parsed_pts) == 4:
-                src_homography_pts = parsed_pts
-        except Exception:
-            src_homography_pts = None
-
-    body_type_clean = str(body_type).lower() if body_type and body_type != "string" else "athletic"
-    body_mobility_factor = {
-        "athletic": 1.05,
-        "slim": 1.00,
-        "average": 0.98,
-        "heavy": 0.92
-    }.get(body_type_clean, 1.00)
-
-    shirt_str = shirt_color.strip() if shirt_color and shirt_color != "string" else ("Chưa rõ" if selected_lang == "vi" else "Unspecified")
-    headwear_str = headwear.strip() if headwear and headwear != "string" else ("Không" if selected_lang == "vi" else "None")
-
-    try:
-        wins_cnt = int(match_wins) if match_wins and match_wins != "string" else 0
-        total_cnt = int(total_matches) if total_matches and total_matches != "string" else 0
-    except ValueError:
-        wins_cnt, total_cnt = 0, 0
-
-    if total_cnt > 0:
-        winrate_val = round((wins_cnt / total_cnt) * 100, 1)
-        winrate_source = f"Thực tế ({wins_cnt}/{total_cnt} trận)" if selected_lang == "vi" else f"Actual ({wins_cnt}/{total_cnt})"
-    else:
-        try:
-            winrate_val = float(historical_winrate) if historical_winrate and historical_winrate != "string" else 60.0
-        except ValueError:
-            winrate_val = 60.0
-        winrate_source = "Nhập tay" if selected_lang == "vi" else "Manual Entry"
-
-    in_out_bool = str(enable_in_out_check).lower() in ["true", "1", "yes"]
-    heatmap_bool = str(enable_heatmap).lower() in ["true", "1", "yes"]
-    kitchen_bool = str(enable_kitchen_var).lower() in ["true", "1", "yes"]
-
-    temp_video_path = f"temp_{int(time.time())}.mp4"
-    clean_rtsp = camera_rtsp_url.strip() if camera_rtsp_url and camera_rtsp_url.strip() not in ["", "string"] else None
-    clean_url = video_url.strip() if video_url and video_url.strip() not in ["", "string"] else None
-
-    if clean_rtsp:
-        rtsp_success = capture_rtsp_stream(clean_rtsp, temp_video_path, duration_sec=5)
-        if not rtsp_success:
-            raise HTTPException(status_code=400, detail="Không thể kết nối RTSP Camera!")
-    elif file and file.filename != "":
-        content = file.file.read()
-        if len(content) > 0:
-            with open(temp_video_path, "wb") as buffer:
-                buffer.write(content)
-    elif clean_url:
-        dl_res = download_online_video(clean_url, temp_video_path)
-        if not (dl_res and os.path.exists(temp_video_path)):
-            raise HTTPException(status_code=400, detail="Không thể tải video từ URL!")
-    else:
-        raise HTTPException(status_code=400, detail="Vui lòng cung cấp File, URL Video hoặc RTSP Stream!")
+    body_type_clean = str(body_type).lower() if body_type else "athletic"
+    body_mobility_factor = {"athletic": 1.05, "slim": 1.00, "average": 0.98, "heavy": 0.92}.get(body_type_clean, 1.00)
 
     cap = cv2.VideoCapture(temp_video_path)
     if not cap.isOpened():
-        if os.path.exists(temp_video_path):
-            os.remove(temp_video_path)
-        raise HTTPException(status_code=400, detail="Không thể mở định dạng Video!")
+        BACKGROUND_TASKS_STORE[task_id] = {"status": "FAILED", "error": "Cannot open video file"}
+        return
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -363,7 +314,7 @@ def analyze_video(
                     elbow_angles.append(calculate_angle(sh, el, wr))
                     knee_angles.append(calculate_angle(hp, kn, ak))
     except Exception as e:
-        print(f"MediaPipe Error: {e}")
+        print(f"MediaPipe Async Error: {e}")
     finally:
         cap.release()
         if os.path.exists(temp_video_path):
@@ -373,7 +324,6 @@ def analyze_video(
                 pass
         gc.collect()
 
-    # --- 🎯 XỬ LÝ IN/OUT BẰNG HOMOGRAPHY MATRIX (CHIẾU TỎA ĐỘ BÓNG VỀ SÂN 2D) ---
     in_out_results, heatmap_points = [], []
     margin_x_left, margin_x_right = int(width * 0.12), int(width * 0.88)
     margin_y_top, margin_y_bottom = int(height * 0.25), int(height * 0.90)
@@ -386,10 +336,8 @@ def analyze_video(
 
             if (y_curr >= y_prev and y_curr >= y_next) and y_curr > (height * 0.28):
                 if src_homography_pts:
-                    # Sử dụng Ma trận Homography tính toán tọa độ phẳng
                     norm_x, norm_y, is_in = transform_point_homography(x_curr, y_curr, src_homography_pts)
                 else:
-                    # Tính toán tỷ lệ tiêu chuẩn nếu chưa truyền ma trận góc sân
                     is_in = (margin_x_left <= x_curr <= margin_x_right) and (margin_y_top <= y_curr <= margin_y_bottom)
                     norm_x = round(((x_curr - margin_x_left) / max(1, (margin_x_right - margin_x_left))) * 100, 1)
                     norm_y = round(((y_curr - margin_y_top) / max(1, (margin_y_bottom - margin_y_top))) * 100, 1)
@@ -448,54 +396,172 @@ def analyze_video(
     player_id = "PICKLE-AI-PLAYER-V3"
     rating_str = f"{final_rating:.2f} PVNA"
 
-    clean_profile_url = profile_result_url.strip() if profile_result_url and profile_result_url != "string" else ("Không có" if selected_lang == "vi" else "None")
-    if "[" in clean_profile_url:
-        clean_profile_url = clean_profile_url.split("[")[0].strip()
-
     signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%")
     video_src_text = t["source_rtsp"] if clean_rtsp else (t["source_url"] if clean_url else t["source_file"])
 
-    return {
-        "success": True,
-        "language": selected_lang.upper(),
-        "video_source": video_src_text,
-        "duration_sec": duration_sec,
-        "calculated_rating": rating_str,
-        "tournament_tier": tier_info["label"],
-        "homography_calibration": "ENABLED (Ma trận 2D)" if src_homography_pts else "DISABLED (Standard Mode)",
-        "player_visual_profile": {
-            "body_type": body_type_clean.capitalize(),
-            "shirt_color": shirt_str,
-            "headwear": headwear_str,
-            "mobility_factor": f"{body_mobility_factor}x"
-        },
-        "match_record": {
-            "wins": wins_cnt,
-            "total_matches": total_cnt,
-            "winrate_percent": f"{winrate_val}%",
-            "source": winrate_source,
-            "proof_link": clean_profile_url
-        },
-        "avg_elbow_angle": f"{avg_elbow}°",
-        "avg_knee_angle": f"{avg_knee}°",
-        "overall_composite_score": f"{composite_score_100} / 100",
-        "var_kitchen_foot_fault": kitchen_var_response if kitchen_bool else "Disabled",
-        "ball_in_out_analysis": in_out_results if in_out_bool else "Disabled",
-        "heatmap_analysis": {
-            "total_bounces_detected": len(heatmap_points),
-            "bounce_points": heatmap_points if heatmap_bool else []
-        },
-        "qr_certified_data": {
-            "status": "APPROVED_BY_AI",
-            "player_id": player_id,
-            "rating": rating_str,
-            "tier": tier_info["label"],
-            "signature": signature
+    BACKGROUND_TASKS_STORE[task_id] = {
+        "status": "COMPLETED",
+        "result": {
+            "success": True,
+            "language": selected_lang.upper(),
+            "video_source": video_src_text,
+            "duration_sec": duration_sec,
+            "calculated_rating": rating_str,
+            "tournament_tier": tier_info["label"],
+            "homography_calibration": "ENABLED (Auto-Sorted 2D)" if src_homography_pts else "DISABLED (Standard Mode)",
+            "player_visual_profile": {
+                "body_type": body_type_clean.capitalize(),
+                "shirt_color": shirt_color if shirt_color else "Unspecified",
+                "headwear": headwear if headwear else "None",
+                "mobility_factor": f"{body_mobility_factor}x"
+            },
+            "match_record": {
+                "wins": wins_cnt,
+                "total_matches": total_cnt,
+                "winrate_percent": f"{winrate_val}%",
+                "source": winrate_source,
+                "proof_link": clean_profile_url
+            },
+            "avg_elbow_angle": f"{avg_elbow}°",
+            "avg_knee_angle": f"{avg_knee}°",
+            "overall_composite_score": f"{composite_score_100} / 100",
+            "var_kitchen_foot_fault": kitchen_var_response if kitchen_bool else "Disabled",
+            "ball_in_out_analysis": in_out_results if in_out_bool else "Disabled",
+            "heatmap_analysis": {
+                "total_bounces_detected": len(heatmap_points),
+                "bounce_points": heatmap_points if heatmap_bool else []
+            },
+            "qr_certified_data": {
+                "status": "APPROVED_BY_AI",
+                "player_id": player_id,
+                "rating": rating_str,
+                "tier": tier_info["label"],
+                "signature": signature
+            }
         }
     }
 
+@app.post("/api/analyze-video")
+def analyze_video(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(None),
+    video_url: Optional[str] = Form(None),
+    camera_rtsp_url: Optional[str] = Form(None),
+    lang: Optional[str] = Form("vi"),
+    player_position: Optional[str] = Form("right"),
+    shirt_color: Optional[str] = Form(None),
+    headwear: Optional[str] = Form(None),
+    body_type: Optional[str] = Form("athletic"),
+    player_tier: Optional[str] = Form("intermediate"),
+    match_wins: Optional[str] = Form("0"),
+    total_matches: Optional[str] = Form("0"),
+    profile_result_url: Optional[str] = Form(None),
+    historical_winrate: Optional[str] = Form("60.0"),
+    custom_kitchen_y: Optional[int] = Form(None),
+    court_corners_json: Optional[str] = Form(None, description="Chuỗi JSON 4 góc sân: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]"),
+    enable_in_out_check: Optional[str] = Form("true"),
+    enable_heatmap: Optional[str] = Form("true"),
+    enable_kitchen_var: Optional[str] = Form("true")
+):
+    selected_lang = "en" if str(lang).lower() == "en" else "vi"
+
+    src_homography_pts = None
+    if court_corners_json and court_corners_json != "string":
+        try:
+            parsed_pts = json.loads(court_corners_json)
+            if len(parsed_pts) == 4:
+                src_homography_pts = parsed_pts
+        except Exception:
+            src_homography_pts = None
+
+    try:
+        wins_cnt = int(match_wins) if match_wins and match_wins != "string" else 0
+        total_cnt = int(total_matches) if total_matches and total_matches != "string" else 0
+    except ValueError:
+        wins_cnt, total_cnt = 0, 0
+
+    if total_cnt > 0:
+        winrate_val = round((wins_cnt / total_cnt) * 100, 1)
+        winrate_source = f"Thực tế ({wins_cnt}/{total_cnt} trận)" if selected_lang == "vi" else f"Actual ({wins_cnt}/{total_cnt})"
+    else:
+        try:
+            winrate_val = float(historical_winrate) if historical_winrate and historical_winrate != "string" else 60.0
+        except ValueError:
+            winrate_val = 60.0
+        winrate_source = "Nhập tay" if selected_lang == "vi" else "Manual Entry"
+
+    in_out_bool = str(enable_in_out_check).lower() in ["true", "1", "yes"]
+    heatmap_bool = str(enable_heatmap).lower() in ["true", "1", "yes"]
+    kitchen_bool = str(enable_kitchen_var).lower() in ["true", "1", "yes"]
+
+    task_id = str(uuid.uuid4())
+    temp_video_path = f"temp_{task_id}.mp4"
+    clean_rtsp = camera_rtsp_url.strip() if camera_rtsp_url and camera_rtsp_url.strip() not in ["", "string"] else None
+    clean_url = video_url.strip() if video_url and video_url.strip() not in ["", "string"] else None
+
+    if clean_rtsp:
+        rtsp_success = capture_rtsp_stream(clean_rtsp, temp_video_path, duration_sec=5)
+        if not rtsp_success:
+            raise HTTPException(status_code=400, detail="Không thể kết nối RTSP Camera!")
+    elif file and file.filename != "":
+        content = file.file.read()
+        if len(content) > 0:
+            with open(temp_video_path, "wb") as buffer:
+                buffer.write(content)
+    elif clean_url:
+        dl_res = download_online_video(clean_url, temp_video_path)
+        if not (dl_res and os.path.exists(temp_video_path)):
+            raise HTTPException(status_code=400, detail="Không thể tải video từ URL!")
+    else:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp File, URL Video hoặc RTSP Stream!")
+
+    BACKGROUND_TASKS_STORE[task_id] = {"status": "PROCESSING", "message": "AI Engine is analyzing in background"}
+
+    clean_profile_url = profile_result_url.strip() if profile_result_url and profile_result_url != "string" else ("Không có" if selected_lang == "vi" else "None")
+
+    # Kích hoạt chạy ngầm qua BackgroundTasks
+    background_tasks.add_task(
+        process_video_async_task,
+        task_id,
+        temp_video_path,
+        selected_lang,
+        player_position,
+        shirt_color,
+        headwear,
+        body_type,
+        player_tier,
+        wins_cnt,
+        total_cnt,
+        winrate_val,
+        winrate_source,
+        clean_profile_url,
+        custom_kitchen_y,
+        src_homography_pts,
+        in_out_bool,
+        heatmap_bool,
+        kitchen_bool,
+        bool(clean_rtsp),
+        bool(clean_url)
+    )
+
+    # Phản hồi tức thì cho Client trong 0.1s
+    return {
+        "success": True,
+        "task_id": task_id,
+        "status": "PROCESSING",
+        "check_status_url": f"/api/task-status/{task_id}",
+        "message": "Đã tiếp nhận request! AI đang xử lý ngầm, vui lòng gọi API check_status_url để lấy kết quả."
+    }
+
+@app.get("/api/task-status/{task_id}")
+def get_task_status(task_id: str):
+    """Client dùng Endpoint này để kiểm tra kết quả phân tích AI sau khi gửi video"""
+    if task_id not in BACKGROUND_TASKS_STORE:
+        raise HTTPException(status_code=404, detail="Không tìm thấy mã Task ID!")
+    return BACKGROUND_TASKS_STORE[task_id]
+
 # =====================================================================
-# 🏆 SYSTEM 2: TOURNAMENT CONTROLLER & ASYNC VAR
+# 🏆 SYSTEM 2: TOURNAMENT CONTROLLER & REFEREE VAR
 # =====================================================================
 @app.post("/api/tournament/start-match")
 def start_match(
