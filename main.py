@@ -1,6 +1,7 @@
 import os
 import re
 import cv2
+import gc
 import math
 import hmac
 import hashlib
@@ -12,8 +13,8 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Player Rating & Visual Profile Edition",
-    version="3.1.0"
+    title="Pickleball AI Enterprise Engine - Ultra Light & Visual Profile Edition",
+    version="3.2.0"
 )
 
 app.add_middleware(
@@ -86,7 +87,7 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
             clean_url = clean_url.split("&si=")[0]
 
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]', # Giới hạn 720p để tiết kiệm RAM Render
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
@@ -104,25 +105,26 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         return None
 
 def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", duration_sec: int = 5) -> bool:
+    """Trích xuất RTSP tối ưu dung lượng RAM"""
     try:
         cap = cv2.VideoCapture(rtsp_url)
         if not cap.isOpened():
             return False
 
         fps = int(cap.get(cv2.CAP_PROP_FPS)) or 30
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1280
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 720
         max_frames = fps * duration_sec
 
+        # Resize về 640x360 để tiết kiệm RAM trên Render Free
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        out = cv2.VideoWriter(output_path, fourcc, fps, (640, 360))
 
         frames_recorded = 0
         while cap.isOpened() and frames_recorded < max_frames:
             ret, frame = cap.read()
             if not ret:
                 break
-            out.write(frame)
+            resized_frame = cv2.resize(frame, (640, 360))
+            out.write(resized_frame)
             frames_recorded += 1
 
         cap.release()
@@ -133,23 +135,24 @@ def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", durat
         return False
 
 def detect_ball_enhanced(frame):
+    """Lọc màu HSV + Lọc độ tròn Contour chống nhiễu hạt"""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower_yellow1 = np.array([20, 100, 100])
     upper_yellow1 = np.array([38, 255, 255])
     
     mask = cv2.inRange(hsv, lower_yellow1, upper_yellow1)
-    mask = cv2.GaussianBlur(mask, (5, 5), 0)
+    mask = cv2.GaussianBlur(mask, (3, 3), 0)
     
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         for c in contours:
             area = cv2.contourArea(c)
-            if 15 < area < 1500:
+            if 10 < area < 1000:
                 perimeter = cv2.arcLength(c, True)
                 if perimeter == 0:
                     continue
                 circularity = 4 * np.pi * (area / (perimeter * perimeter))
-                if circularity > 0.5:
+                if circularity > 0.45:
                     ((x, y), radius) = cv2.minEnclosingCircle(c)
                     return (int(x), int(y))
     return None
@@ -160,8 +163,11 @@ def check_kitchen_violation(foot_y, height, custom_kitchen_y=None):
 
 @app.get("/")
 def root():
-    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.1.0 - Rating & Visual Profile Edition"}
+    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.2.0 - Ultra Light Edition"}
 
+# =====================================================================
+# 🌟 SYSTEM 1: PVNA SMART RATING & VISUAL PROFILE ANALYSIS
+# =====================================================================
 @app.post("/api/analyze-video")
 def analyze_video(
     file: UploadFile = File(None),
@@ -185,13 +191,13 @@ def analyze_video(
     selected_lang = "en" if str(lang).lower() == "en" else "vi"
     t = DICT_I18N[selected_lang]
 
-    # --- 🧘‍♂️ TÍNH TOÁN HỆ SỐ THỂ HÌNH VÀ TRANG PHỤC ---
+    # Tính toán chỉ số thể hình & trang phục
     body_type_clean = str(body_type).lower() if body_type and body_type != "string" else "athletic"
     body_mobility_factor = {
-        "athletic": 1.05,   # Thể hình thể thao -> Tăng nhẹ điểm cơ động
-        "slim": 1.00,       # Thể hình thon gọn
-        "average": 0.98,    # Thể hình trung bình
-        "heavy": 0.92       # Thể hình đậm người
+        "athletic": 1.05,
+        "slim": 1.00,
+        "average": 0.98,
+        "heavy": 0.92
     }.get(body_type_clean, 1.00)
 
     shirt_str = shirt_color.strip() if shirt_color and shirt_color != "string" else ("Chưa rõ" if selected_lang == "vi" else "Unspecified")
@@ -249,7 +255,7 @@ def analyze_video(
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 720
     duration_sec = round(total_frames / fps, 1) if total_frames > 0 else 10.0
 
-    frame_skip = 15 if duration_sec > 60 else 3
+    frame_skip = 15 if duration_sec > 60 else 4
     elbow_angles, knee_angles, ball_positions, kitchen_faults = [], [], [], []
 
     try:
@@ -259,7 +265,7 @@ def analyze_video(
         except AttributeError:
             import mediapipe.python.solutions.pose as mp_pose
 
-        with mp_pose.Pose(static_image_mode=False, model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+        with mp_pose.Pose(static_image_mode=False, model_complexity=0, min_detection_confidence=0.5) as pose:
             frame_count = 0
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -333,6 +339,7 @@ def analyze_video(
                 os.remove(temp_video_path)
             except Exception:
                 pass
+        gc.collect() # 🧹 Giải phóng RAM tức thì cho Render Free Tier
 
     in_out_results, heatmap_points = [], []
     margin_x_left, margin_x_right = int(width * 0.12), int(width * 0.88)
@@ -446,3 +453,111 @@ def analyze_video(
             "signature": signature
         }
     }
+
+# =====================================================================
+# 🏆 SYSTEM 2: TOURNAMENT CONTROLLER & ASYNC VAR
+# =====================================================================
+@app.post("/api/tournament/start-match")
+def start_match(
+    match_id: str = Form(..., description="Mã trận đấu, ví dụ: MATCH-101"),
+    court_number: str = Form("Court 1"),
+    player_a: str = Form("Đội A"),
+    player_b: str = Form("Đội B"),
+    rtsp_url: str = Form(...)
+):
+    MATCH_SESSIONS[match_id] = {
+        "court": court_number,
+        "player_a": player_a,
+        "player_b": player_b,
+        "rtsp_url": rtsp_url,
+        "start_time": time.strftime("%H:%M:%S - %d/%m/%Y"),
+        "var_logs": []
+    }
+    return {
+        "success": True,
+        "message": f"Đã khởi tạo trận {match_id} tại {court_number}",
+        "match_info": MATCH_SESSIONS[match_id]
+    }
+
+@app.post("/api/tournament/referee-check-var")
+def referee_check_var(
+    match_id: str = Form(...),
+    lang: Optional[str] = Form("vi"),
+    custom_kitchen_y: Optional[int] = Form(None)
+):
+    if match_id not in MATCH_SESSIONS:
+        raise HTTPException(status_code=404, detail="Không tìm thấy trận đấu!")
+
+    session = MATCH_SESSIONS[match_id]
+    rtsp_url = session["rtsp_url"]
+    temp_path = f"temp_var_{match_id}_{int(time.time())}.mp4"
+
+    success = capture_rtsp_stream(rtsp_url, temp_path, duration_sec=5)
+    if not success:
+        raise HTTPException(status_code=400, detail="Không thể kết nối Camera IP!")
+
+    cap = cv2.VideoCapture(temp_path)
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 360
+
+    fault_detected = False
+    violating_foot = ""
+    selected_lang = "en" if str(lang).lower() == "en" else "vi"
+    t = DICT_I18N[selected_lang]
+
+    try:
+        import mediapipe as mp
+        try:
+            mp_pose = mp.solutions.pose
+        except AttributeError:
+            import mediapipe.python.solutions.pose as mp_pose
+
+        with mp_pose.Pose(static_image_mode=False, model_complexity=0) as pose:
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                results = pose.process(rgb_frame)
+
+                if results.pose_landmarks:
+                    lm = results.pose_landmarks.landmark
+                    r_foot_y = int(lm[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX.value].y * height)
+                    l_foot_y = int(lm[mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value].y * height)
+
+                    if check_kitchen_violation(r_foot_y, height, custom_kitchen_y):
+                        fault_detected = True
+                        violating_foot = t["fault_right"]
+                        break
+                    elif check_kitchen_violation(l_foot_y, height, custom_kitchen_y):
+                        fault_detected = True
+                        violating_foot = t["left_foot"]
+                        break
+    except Exception as e:
+        print(f"VAR Error: {e}")
+    finally:
+        cap.release()
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        gc.collect()
+
+    decision = violating_foot if fault_detected else t["clean"]
+    log_entry = {
+        "timestamp": time.strftime("%H:%M:%S"),
+        "decision": decision,
+        "status": "FAULT" if fault_detected else "CLEAN"
+    }
+    MATCH_SESSIONS[match_id]["var_logs"].append(log_entry)
+
+    return {
+        "success": True,
+        "match_id": match_id,
+        "referee_decision": decision,
+        "status": "FOOT_FAULT" if fault_detected else "NO_FAULT",
+        "timestamp": log_entry["timestamp"]
+    }
+
+@app.get("/api/tournament/match-summary/{match_id}")
+def get_match_summary(match_id: str):
+    if match_id not in MATCH_SESSIONS:
+        raise HTTPException(status_code=404, detail="Không tìm thấy trận đấu!")
+    return MATCH_SESSIONS[match_id]
