@@ -14,8 +14,8 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTa
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Ultimate Production Edition",
-    version="3.5.0"
+    title="Pickleball AI Enterprise Engine - Precision Target Tracking V3.6.0",
+    version="3.6.0"
 )
 
 app.add_middleware(
@@ -69,40 +69,31 @@ def generate_secure_qr_signature(player_id: str, rating: str, winrate: str) -> s
     raw_data = f"{player_id}:{rating}:{winrate}"
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:12]
 
-# 📐 AUTO-SORTING HOMOGRAPHY: Tự động sắp xếp 4 góc sân đúng chuẩn [Top-Left, Top-Right, Bottom-Right, Bottom-Left]
 def order_court_points(pts):
     pts = np.array(pts, dtype="float32")
     rect = np.zeros((4, 2), dtype="float32")
-    
     s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)] # Top-Left
-    rect[2] = pts[np.argmax(s)] # Bottom-Right
-    
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
     diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)] # Top-Right
-    rect[3] = pts[np.argmax(diff)] # Bottom-Left
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
     return rect
 
 def transform_point_homography(x, y, src_pts):
     try:
         if not src_pts or len(src_pts) != 4:
             return x, y, False
-
-        # Sắp xếp lại thứ tự điểm tự động tránh lỗi truyền tọa độ rác từ client
         ordered_pts = order_court_points(src_pts)
         pts_dst = np.array([[0, 0], [100, 0], [100, 100], [0, 100]], dtype=np.float32)
-
         h_matrix, _ = cv2.findHomography(ordered_pts, pts_dst)
         point = np.array([[[x, y]]], dtype=np.float32)
         transformed_point = cv2.perspectiveTransform(point, h_matrix)
-        
         norm_x = round(float(transformed_point[0][0][0]), 1)
         norm_y = round(float(transformed_point[0][0][1]), 1)
-        
         is_in = (0.0 <= norm_x <= 100.0) and (0.0 <= norm_y <= 100.0)
         return norm_x, norm_y, is_in
-    except Exception as e:
-        print(f"Homography Error: {e}")
+    except Exception:
         return x, y, False
 
 def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str:
@@ -110,15 +101,12 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         import yt_dlp
         clean_url = url.strip()
         clean_url = re.sub(r'[\(\)\[\]]', '', clean_url)
-        
         urls_found = re.findall(r'(https?://[^\s]+)', clean_url)
         if urls_found:
             clean_url = urls_found[0]
-
         if "youtu.be/" in clean_url:
             video_id = clean_url.split("youtu.be/")[1].split("?")[0].split("&")[0]
             clean_url = f"https://www.youtube.com/watch?v={video_id}"
-
         if "?si=" in clean_url:
             clean_url = clean_url.split("?si=")[0]
         if "&si=" in clean_url:
@@ -131,12 +119,10 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
             'no_warnings': True,
             'overwrites': True,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         }
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
-
         return output_path
     except Exception as e:
         print(f"❌ Download Error: {e}")
@@ -147,13 +133,10 @@ def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", durat
         cap = cv2.VideoCapture(rtsp_url)
         if not cap.isOpened():
             return False
-
         fps = int(cap.get(cv2.CAP_PROP_FPS)) or 30
         max_frames = fps * duration_sec
-
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (640, 360))
-
         frames_recorded = 0
         while cap.isOpened() and frames_recorded < max_frames:
             ret, frame = cap.read()
@@ -162,7 +145,6 @@ def capture_rtsp_stream(rtsp_url: str, output_path: str = "temp_rtsp.mp4", durat
             resized_frame = cv2.resize(frame, (640, 360))
             out.write(resized_frame)
             frames_recorded += 1
-
         cap.release()
         out.release()
         return os.path.exists(output_path) and os.path.getsize(output_path) > 0
@@ -174,10 +156,8 @@ def detect_ball_precision(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower_yellow = np.array([15, 60, 80])
     upper_yellow = np.array([45, 255, 255])
-    
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
     mask = cv2.GaussianBlur(mask, (3, 3), 0)
-    
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         for c in contours:
@@ -194,18 +174,20 @@ def check_kitchen_violation(foot_y, height, custom_kitchen_y=None):
 
 @app.get("/")
 def root():
-    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.5.0 - Ultimate Edition"}
+    return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.6.0 - Precision Target Tracking"}
 
 # =====================================================================
-# 🌟 SYSTEM 1: PVNA SMART RATING & ASYNC TASK QUEUE
+# 🌟 SYSTEM 1: PVNA SMART RATING & ASYNC TASK QUEUE (V3.6.0)
 # =====================================================================
 
 def process_video_async_task(
     task_id: str,
     temp_video_path: str,
     selected_lang: str,
+    court_distance: str,
     player_position: str,
     shirt_color: str,
+    shoe_color: str,
     headwear: str,
     body_type: str,
     player_tier: str,
@@ -226,6 +208,9 @@ def process_video_async_task(
     t = DICT_I18N[selected_lang]
     body_type_clean = str(body_type).lower() if body_type else "athletic"
     body_mobility_factor = {"athletic": 1.05, "slim": 1.00, "average": 0.98, "heavy": 0.92}.get(body_type_clean, 1.00)
+
+    dist_str = "Sân Gần (Near)" if court_distance == "near" else "Sân Xa (Far)"
+    pos_str = "Bên Phải (Right)" if player_position == "right" else "Bên Trái (Left)"
 
     cap = cv2.VideoCapture(temp_video_path)
     if not cap.isOpened():
@@ -410,8 +395,10 @@ def process_video_async_task(
             "tournament_tier": tier_info["label"],
             "homography_calibration": "ENABLED (Auto-Sorted 2D)" if src_homography_pts else "DISABLED (Standard Mode)",
             "player_visual_profile": {
+                "court_position": f"{dist_str} - {pos_str}",
                 "body_type": body_type_clean.capitalize(),
                 "shirt_color": shirt_color if shirt_color else "Unspecified",
+                "shoe_color": shoe_color if shoe_color else "Unspecified",
                 "headwear": headwear if headwear else "None",
                 "mobility_factor": f"{body_mobility_factor}x"
             },
@@ -448,9 +435,11 @@ def analyze_video(
     video_url: Optional[str] = Form(None),
     camera_rtsp_url: Optional[str] = Form(None),
     lang: Optional[str] = Form("vi"),
-    player_position: Optional[str] = Form("right"),
-    shirt_color: Optional[str] = Form(None),
-    headwear: Optional[str] = Form(None),
+    court_distance: Optional[str] = Form("near", description="Vị trí sân: 'near' (Sân Gần) hoặc 'far' (Sân Xa)"),
+    player_position: Optional[str] = Form("right", description="Hướng đứng: 'left' (Bên Trái) hoặc 'right' (Bên Phải)"),
+    shirt_color: Optional[str] = Form(None, description="Màu áo VĐV"),
+    shoe_color: Optional[str] = Form(None, description="Màu giày VĐV"),
+    headwear: Optional[str] = Form(None, description="Mũ/Nón/Băng trán"),
     body_type: Optional[str] = Form("athletic"),
     player_tier: Optional[str] = Form("intermediate"),
     match_wins: Optional[str] = Form("0"),
@@ -519,14 +508,15 @@ def analyze_video(
 
     clean_profile_url = profile_result_url.strip() if profile_result_url and profile_result_url != "string" else ("Không có" if selected_lang == "vi" else "None")
 
-    # Kích hoạt chạy ngầm qua BackgroundTasks
     background_tasks.add_task(
         process_video_async_task,
         task_id,
         temp_video_path,
         selected_lang,
+        court_distance,
         player_position,
         shirt_color,
+        shoe_color,
         headwear,
         body_type,
         player_tier,
@@ -544,18 +534,28 @@ def analyze_video(
         bool(clean_url)
     )
 
-    # Phản hồi tức thì cho Client trong 0.1s
+    dist_str = "Sân Gần (Near)" if court_distance == "near" else "Sân Xa (Far)"
+    pos_str = "Bên Phải (Right)" if player_position == "right" else "Bên Trái (Left)"
+
     return {
         "success": True,
         "task_id": task_id,
         "status": "PROCESSING",
+        "target_player_located": {
+            "depth": dist_str,
+            "side": pos_str,
+            "apparel": {
+                "shirt": shirt_color if shirt_color else "Unspecified",
+                "shoes": shoe_color if shoe_color else "Unspecified",
+                "headwear": headwear if headwear else "None"
+            }
+        },
         "check_status_url": f"/api/task-status/{task_id}",
         "message": "Đã tiếp nhận request! AI đang xử lý ngầm, vui lòng gọi API check_status_url để lấy kết quả."
     }
 
 @app.get("/api/task-status/{task_id}")
 def get_task_status(task_id: str):
-    """Client dùng Endpoint này để kiểm tra kết quả phân tích AI sau khi gửi video"""
     if task_id not in BACKGROUND_TASKS_STORE:
         raise HTTPException(status_code=404, detail="Không tìm thấy mã Task ID!")
     return BACKGROUND_TASKS_STORE[task_id]
@@ -636,7 +636,7 @@ def referee_check_var(
                         break
                     elif check_kitchen_violation(l_foot_y, height, custom_kitchen_y):
                         fault_detected = True
-                        violating_foot = t["left_foot"]
+                        violating_foot = t["fault_left"]
                         break
     except Exception as e:
         print(f"VAR Error: {e}")
