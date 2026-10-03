@@ -12,6 +12,7 @@ import numpy as np
 from typing import Optional, List, Dict
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(
     title="Pickleball AI Enterprise Engine - Precision Target Tracking V3.6.0",
@@ -172,8 +173,12 @@ def check_kitchen_violation(foot_y, height, custom_kitchen_y=None):
     kitchen_limit = custom_kitchen_y if custom_kitchen_y is not None else int(height * 0.45)
     return foot_y <= kitchen_limit + 5
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def root():
+    # Tự động đọc file index.html nếu có trong thư mục, nếu không trả về JSON status
+    if os.path.exists("index.html"):
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
     return {"status": "Active", "system": "Pickleball AI Enterprise Engine V3.6.0 - Precision Target Tracking"}
 
 # =====================================================================
@@ -667,3 +672,7 @@ def get_match_summary(match_id: str):
     if match_id not in MATCH_SESSIONS:
         raise HTTPException(status_code=404, detail="Không tìm thấy trận đấu!")
     return MATCH_SESSIONS[match_id]
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
