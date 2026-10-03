@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pickleball AI Rating Passport - Engine V3.6.0</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --accent-gold: #facc15;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: var(--bg-main);
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-lang {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-lang:hover { background: var(--accent-blue); }
+
+    .main-container {
+      width: 100%;
+      max-width: 650px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: left;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-gold);
+      margin-top: 0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--accent-blue); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0284c7, #16a34a);
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* LOADING QUEUE BOX */
+    .status-box {
+      display: none;
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    /* RESULT PASSPORT CARD */
+    .passport-card {
+      display: none;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid var(--accent-gold);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(250, 204, 21, 0.15);
+      position: relative;
+    }
+
+    .passport-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .badge-certified {
+      background: var(--accent-green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .score-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+    }
+
+    .score-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-blue);
+    }
+
+    .score-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .target-box {
+      background: #0f172a;
+      border: 1px dashed var(--accent-blue);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .qr-section {
+      background: linear-gradient(135deg, #0f172a, #162456);
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qr-img {
+      width: 110px;
+      height: 110px;
+      background: #fff;
+      padding: 4px;
+      border-radius: 8px;
+      border: 2px solid var(--accent-gold);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="brand-title">
+      <i class="fa-solid fa-award"></i> PICKLEBALL AI PASSPORT
+    </div>
+    <button class="btn-lang" id="langBtn" onclick="toggleLanguage()">🌐 VI / EN</button>
+  </div>
+
+  <div class="main-container">
+    
+    <!-- MÀN HÌNH NHẬP THÔNG TIN VĐV & VIDEO -->
+    <div class="card">
+      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)" data-en="⚡ AI RATING & PLAYER TARGETING (V3.6.0)">
+        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)
+      </h3>
+      <div class="card-subtitle" data-vi="Nhập link video và thông số nhận diện ngoại hình. AI Engine V3.6.0 sẽ định vị chính xác VĐV mục tiêu để bóc tách sinh trắc học và cấp Mã QR Rating Certified." data-en="Enter video link and visual identifiers. AI Engine V3.6.0 will pinpoint the target player to extract biomechanics and issue a Certified Rating QR.">
+        Nhập link video và thông số nhận diện ngoại hình. AI Engine V3.6.0 sẽ định vị chính xác VĐV mục tiêu để bóc tách sinh trắc học và cấp Mã QR Rating Certified.
+      </div>
+
+      <form id="rating-form">
+        <div class="form-group">
+          <label data-vi="1. Nguồn Video (Link YouTube / Facebook / Drive):" data-en="1. Video Source (YouTube / Facebook / Drive Link):">1. Nguồn Video (Link YouTube / Facebook / Drive):</label>
+          <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
+        </div>
+
+        <!-- ĐỊNH VỊ SÂN ĐẤU -->
+        <div class="form-group grid-2">
+          <div>
+            <label data-vi="Khoảng cách sân:" data-en="Court Depth:">Khoảng cách sân:</label>
+            <select id="court_distance" class="form-control">
+              <option value="near" selected data-vi="Sân Gần (Near Court)" data-en="Near Court">Sân Gần (Near Court)</option>
+              <option value="far" data-vi="Sân Xa (Far Court)" data-en="Far Court">Sân Xa (Far Court)</option>
+            </select>
+          </div>
+          <div>
+            <label data-vi="Vị trí đứng:" data-en="Court Side:">Vị trí đứng:</label>
+            <select id="player_position" class="form-control">
+              <option value="left" data-vi="Bên Trái (Left Side)" data-en="Left Side">Bên Trái (Left Side)</option>
+              <option value="right" selected data-vi="Bên Phải (Right Side)" data-en="Right Side">Bên Phải (Right Side)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ĐỊNH VỊ TRANG PHỤC -->
+        <div class="form-group grid-3">
+          <div>
+            <label data-vi="Màu áo:" data-en="Shirt Color:">Màu áo:</label>
+            <input type="text" id="shirt_color" class="form-control" value="Áo Trắng">
+          </div>
+          <div>
+            <label data-vi="Màu giày:" data-en="Shoe Color:">Màu giày:</label>
+            <input type="text" id="shoe_color" class="form-control" value="Giày Đen">
+          </div>
+          <div>
+            <label data-vi="Mũ / Nón:" data-en="Headwear:">Mũ / Nón:</label>
+            <input type="text" id="headwear" class="form-control" value="Mũ Lưỡi Trai Trắng">
+          </div>
+        </div>
+
+        <!-- LỊCH SỬ ĐẤU & PHÂN HẠNG -->
+        <div class="form-group grid-3">
+          <div>
+            <label data-vi="Phân hạng VĐV:" data-en="Player Tier:">Phân hạng VĐV:</label>
+            <select id="player_tier" class="form-control">
+              <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
+              <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
+              <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
+              <option value="pro" data-vi="Chuyên nghiệp" data-en="Pro Elite">Chuyên nghiệp</option>
+            </select>
+          </div>
+          <div>
+            <label data-vi="Trận thắng:" data-en="Wins:">Trận thắng:</label>
+            <input type="number" id="match_wins" class="form-control" value="12">
+          </div>
+          <div>
+            <label data-vi="Tổng trận đấu:" data-en="Total Matches:">Tổng trận đấu:</label>
+            <input type="number" id="total_matches" class="form-control" value="15">
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 BẮT ĐẦU CHẤM ĐIỂM AI V3.6.0" data-en="🚀 START AI RATING V3.6.0">
+          🚀 BẮT ĐẦU CHẤM ĐIỂM AI V3.6.0
+        </button>
+      </form>
+    </div>
+
+    <!-- KHỐI HÀNG ĐỜI XỬ LÝ BACKGROUND TASK -->
+    <div class="status-box" id="statusBox">
+      <i class="fa-solid fa-spinner fa-spin style="color:var(--accent-gold); font-size:20px; margin-bottom:8px;"></i>
+      <div id="statusText" data-vi="AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)..." data-en="Target player located. Calculating biomechanics in background (2-5s)...">
+        AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)...
+      </div>
+    </div>
+
+    <!-- THẺ KẾT QUẢ PASSPORT CERTIFIED -->
+    <div class="passport-card" id="passportCard">
+      <div class="passport-header">
+        <div>
+          <span class="badge-certified">✔ OFFICIAL AI CERTIFIED</span>
+          <h3 style="margin:6px 0 0 0; color:var(--accent-gold);" id="resRating">3.85 PVNA</h3>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-muted);" data-vi="CẤP ĐỘ GIẢI" data-en="TIER">CẤP ĐỘ GIẢI</div>
+          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Intermediate</div>
+        </div>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-item">
+          <div class="score-value" id="resElbow">117.5°</div>
+          <div class="score-label" data-vi="GÓC VUNG TAY" data-en="ELBOW ANGLE">GÓC VUNG TAY</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resKnee">133.0°</div>
+          <div class="score-label" data-vi="GÓC CHÙNG GỐI" data-en="KNEE ANGLE">GÓC CHÙNG GỐI</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resComposite">88.5/100</div>
+          <div class="score-label" data-vi="ĐIỂM TỔNG HỢP" data-en="OVERALL SCORE">ĐIỂM TỔNG HỢP</div>
+        </div>
+      </div>
+
+      <div class="target-box">
+        <strong style="color:var(--accent-gold);" data-vi="🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:" data-en="🎯 AI LOCATED TARGET:">🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:</strong>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Giày Đen | Mũ Lưỡi Trai Trắng</div>
+      </div>
+
+      <div class="qr-section">
+        <img class="qr-img" id="resQrCode" src="" alt="Certified QR">
+        <div>
+          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PICKLE-AI-PLAYER-V3</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số HMAC-SHA256 bảo mật niêm phong. Ban Tổ Chức quét mã để đối soát điểm trực tiếp." data-en="HMAC-SHA256 sealed digital signature. Organizers scan for live verification.">
+            Chữ ký số HMAC-SHA256 bảo mật niêm phong. Ban Tổ Chức quét mã để đối soát điểm trực tiếp.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
+  let currentLang = 'vi';
+
+  function toggleLanguage() {
+    currentLang = currentLang === 'vi' ? 'en' : 'vi';
+    document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+
+    document.querySelectorAll('[data-vi]').forEach(el => {
+      const text = el.getAttribute(`data-${currentLang}`);
+      if (text) {
+        if (el.tagName === 'OPTION') { el.text = text; }
+        else { el.innerText = text; }
+      }
+    });
+  }
+
+  async function startAIAnalysis() {
+    const formData = new FormData();
+    formData.append('video_url', document.getElementById('video_url').value);
+    formData.append('lang', currentLang);
+    formData.append('court_distance', document.getElementById('court_distance').value);
+    formData.append('player_position', document.getElementById('player_position').value);
+    formData.append('shirt_color', document.getElementById('shirt_color').value);
+    formData.append('shoe_color', document.getElementById('shoe_color').value);
+    formData.append('headwear', document.getElementById('headwear').value);
+    formData.append('player_tier', document.getElementById('player_tier').value);
+    formData.append('match_wins', document.getElementById('match_wins').value);
+    formData.append('total_matches', document.getElementById('total_matches').value);
+
+    const btn = document.getElementById('btnSubmit');
+    const statusBox = document.getElementById('statusBox');
+    const passportCard = document.getElementById('passportCard');
+
+    btn.disabled = true;
+    statusBox.style.display = 'block';
+    passportCard.style.display = 'none';
+
+    try {
+      // 1. Gửi request tới Backend V3.6.0
+      const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      if (data.success && data.task_id) {
+        // Cập nhật thông tin định vị VĐV
+        if (data.target_player_located) {
+          const loc = data.target_player_located;
+          document.getElementById('resTargetIdentity').innerText = 
+            `${loc.depth} - ${loc.side} | ${loc.apparel.shirt} | ${loc.apparel.shoes} | ${loc.apparel.headwear}`;
+        }
+        // 2. Poll kết quả qua Task ID
+        pollTaskStatus(data.task_id);
+      } else {
+        alert(currentLang === 'vi' ? "❌ Khởi tạo thất bại!" : "❌ Task failed!");
+        btn.disabled = false;
+        statusBox.style.display = 'none';
+      }
+    } catch (err) {
+      alert(currentLang === 'vi' ? "❌ Lỗi kết nối Server Render!" : "❌ Server Connection Error!");
+      btn.disabled = false;
+      statusBox.style.display = 'none';
+    }
+  }
+
+  async function pollTaskStatus(taskId) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
+        const data = await res.json();
+
+        if (data.status === 'COMPLETED') {
+          clearInterval(interval);
+          document.getElementById('statusBox').style.display = 'none';
+          document.getElementById('btnSubmit').disabled = false;
+
+          const resData = data.result;
+          document.getElementById('passportCard').style.display = 'block';
+          document.getElementById('resRating').innerText = resData.calculated_rating;
+          document.getElementById('resTier').innerText = resData.tournament_tier;
+          document.getElementById('resElbow').innerText = resData.avg_elbow_angle;
+          document.getElementById('resKnee').innerText = resData.avg_knee_angle;
+          document.getElementById('resComposite').innerText = resData.overall_composite_score;
+          document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
+
+          const qrData = encodeURIComponent(JSON.stringify(resData.qr_certified_data));
+          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+        } else if (data.status === 'FAILED') {
+          clearInterval(interval);
+          alert(currentLang === 'vi' ? "❌ Phân tích AI gặp lỗi!" : "❌ AI analysis failed!");
+          document.getElementById('statusBox').style.display = 'none';
+          document.getElementById('btnSubmit').disabled = false;
+        }
+      } catch (err) {
+        console.log("Polling status...", err);
+      }
+    }, 2000);
+  }
+</script>
+</body>
+</html>
