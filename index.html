@@ -333,7 +333,7 @@
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Quần Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-pants">
-            <input type="text" id="input-custom-pants" placeholder="Nhập kiểu/màu quần (Ví dụ: Váy Trắng, Quần Dài Xanh)...">
+            <input type="text" id="input-custom-pants" placeholder="Nhập kiểu/màu quần (Ví dụ: Quần Hồng, Váy Trắng)...">
           </div>
         </div>
 
@@ -524,20 +524,23 @@
 
   async function startAIAnalysis() {
     const formData = new FormData();
+    
+    // 1. URL Video & Ngôn ngữ
     formData.append('video_url', document.getElementById('video_url').value);
     formData.append('lang', currentLang);
 
+    // 2. Vị trí sân
     const posParts = selectedValues.court_pos.split('_');
     formData.append('court_distance', posParts[0]);
     formData.append('player_position', posParts[1]);
 
-    // XỬ LÝ LẤY GIÁ TRỊ TỰ NHẬP NẾU BẤM NÚT "+ TỰ NHẬP KHÁC"
+    // 3. Xử lý giá trị tự nhập từ nút + Tự Nhập Khác
     const shirtVal = isCustomActive.shirt ? (document.getElementById('input-custom-shirt').value.trim() || 'Áo Tự Nhập') : selectedValues.shirt;
     const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Tự Nhập') : selectedValues.pants;
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
 
-    formData.append('shirt_color', `${shirtVal} / ${pantsVal}`);
+    formData.append('shirt_color', `${shirtVal} (${pantsVal})`);
     formData.append('shoe_color', shoesVal);
     formData.append('headwear', headwearVal);
     formData.append('body_type', selectedValues.body);
@@ -554,10 +557,16 @@
     passportCard.style.display = 'none';
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       const data = await res.json();
 
       if (data.success && data.task_id) {
@@ -568,12 +577,12 @@
         }
         pollTaskStatus(data.task_id);
       } else {
-        alert(currentLang === 'vi' ? "❌ Khởi tạo thất bại!" : "❌ Task failed!");
+        alert(currentLang === 'vi' ? `❌ Khởi tạo thất bại: ${data.message || 'Lỗi server'}` : `❌ Failed: ${data.message || 'Server error'}`);
         btn.disabled = false;
         statusBox.style.display = 'none';
       }
     } catch (err) {
-      alert(currentLang === 'vi' ? "❌ Lỗi kết nối Server Render!" : "❌ Server Connection Error!");
+      alert(currentLang === 'vi' ? "❌ Server Render đang khởi động (Cold Start). Vui lòng đợi 30 giây rồi bấm thử lại!" : "❌ Server is warming up. Please retry in 30 seconds!");
       btn.disabled = false;
       statusBox.style.display = 'none';
     }
