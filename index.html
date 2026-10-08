@@ -113,7 +113,6 @@
       outline: none;
     }
 
-    /* BỘ NÚT CHỌN LINH HOẠT & NÚT KHÁC TỰ NHẬP */
     .badge-group {
       display: flex;
       flex-wrap: wrap;
@@ -365,7 +364,7 @@
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH / NGOẠI HÌNH (CÓ NÚT TỰ NHẬP NGOẠI HÌNH) -->
+        <!-- 7. THỂ HÌNH / NGOẠI HÌNH -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -541,6 +540,7 @@
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
     
+    // Chuẩn hóa từ khóa body_type tương thích với Backend Python main 1.py
     let bodyVal = selectedValues.body;
     if (isCustomActive.body) {
       const customBodyText = document.getElementById('input-custom-body').value.trim().toLowerCase();
@@ -555,7 +555,6 @@
       }
     }
 
-    // Gửi giá trị chuỗi sạch chuẩn hóa (không dùng ngoặc đơn)
     formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
     formData.append('shoe_color', shoesVal);
     formData.append('headwear', headwearVal);
@@ -592,15 +591,17 @@
         }
         pollTaskStatus(data.task_id);
       } else {
-        alert(currentLang === 'vi' ? `❌ Thất bại: ${data.detail || data.message || 'Lỗi xử lý dữ liệu'}` : `❌ Failed: ${data.detail || data.message || 'Data error'}`);
+        // Đọc mã chi tiết lỗi trả về từ HTTPException
+        const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể tải video từ URL!');
+        alert(currentLang === 'vi' ? `❌ Thất bại: ${errDetail}` : `❌ Failed: ${errDetail}`);
         btn.disabled = false;
         statusBox.style.display = 'none';
       }
     } catch (err) {
       console.error(err);
       alert(currentLang === 'vi' 
-        ? "⚡ Máy chủ Render đang bận hoặc đang khởi động lại. Vui lòng thử lại sau vài giây!" 
-        : "⚡ Server busy or restarting. Please retry in a few seconds!");
+        ? "⚡ Máy chủ Render đang bận hoặc đang khởi động lại (Cold Start). Vui lòng đợi 20 giây rồi bấm thử lại!" 
+        : "⚡ Server busy or warming up. Please retry in 20 seconds!");
       btn.disabled = false;
       statusBox.style.display = 'none';
     }
@@ -630,7 +631,7 @@
           document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
-          alert(currentLang === 'vi' ? "❌ Phân tích AI gặp lỗi!" : "❌ AI analysis failed!");
+          alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
           document.getElementById('statusBox').style.display = 'none';
           document.getElementById('btnSubmit').disabled = false;
         }
