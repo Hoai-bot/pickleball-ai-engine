@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pickleball AI Rating Passport - Engine V3.6.0</title>
+  <title>Pickleball AI Rating Passport - Flexible Target Engine V3.6.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -61,10 +61,7 @@
     }
     .btn-lang:hover { background: var(--accent-blue); }
 
-    .main-container {
-      width: 100%;
-      max-width: 650px;
-    }
+    .main-container { width: 100%; max-width: 650px; }
 
     .card {
       background: var(--card-bg);
@@ -94,16 +91,14 @@
       line-height: 1.5;
     }
 
-    .form-group {
-      margin-bottom: 14px;
-    }
+    .form-group { margin-bottom: 16px; }
 
     .form-group label {
       display: block;
       font-size: 12px;
       font-weight: 700;
       color: var(--accent-blue);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .form-control {
@@ -116,12 +111,46 @@
       font-size: 13px;
       box-sizing: border-box;
       outline: none;
-      transition: border-color 0.2s;
     }
-    .form-control:focus { border-color: var(--accent-blue); }
+
+    /* BỘ NÚT CHỌN LINH HOẠT (INTERACTIVE BADGES) */
+    .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge-opt {
+      padding: 7px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .badge-opt:hover { border-color: var(--accent-blue); color: #fff; }
+
+    .badge-opt.active {
+      background: var(--accent-blue);
+      color: #000;
+      border-color: var(--accent-blue);
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-opt.active-gold {
+      background: var(--accent-gold);
+      color: #000;
+      border-color: var(--accent-gold);
+      font-weight: 800;
+    }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
     .btn-submit {
       width: 100%;
@@ -138,9 +167,9 @@
       transition: all 0.2s;
     }
     .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* LOADING QUEUE BOX */
+    /* KHỐI TRẠNG THÁI & KẾT QUẢ PASSPORT */
     .status-box {
       display: none;
       background: #0f172a;
@@ -152,7 +181,6 @@
       margin-bottom: 20px;
     }
 
-    /* RESULT PASSPORT CARD */
     .passport-card {
       display: none;
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -160,7 +188,7 @@
       border-radius: 16px;
       padding: 20px;
       box-shadow: 0 10px 30px rgba(250, 204, 21, 0.15);
-      position: relative;
+      text-align: left;
     }
 
     .passport-header {
@@ -196,17 +224,8 @@
       text-align: center;
     }
 
-    .score-value {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--accent-blue);
-    }
-
-    .score-label {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+    .score-value { font-size: 20px; font-weight: 800; color: var(--accent-blue); }
+    .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
     .target-box {
       background: #0f172a;
@@ -250,59 +269,91 @@
 
   <div class="main-container">
     
-    <!-- MÀN HÌNH NHẬP THÔNG TIN VĐV & VIDEO -->
     <div class="card">
-      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)" data-en="⚡ AI RATING & PLAYER TARGETING (V3.6.0)">
-        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)
+      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV FLEXIBLE (V3.6.0)" data-en="⚡ FLEXIBLE AI RATING & PLAYER TARGETING (V3.6.0)">
+        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV FLEXIBLE (V3.6.0)
       </h3>
-      <div class="card-subtitle" data-vi="Nhập link video và thông số nhận diện ngoại hình. AI Engine V3.6.0 sẽ định vị chính xác VĐV mục tiêu để bóc tách sinh trắc học và cấp Mã QR Rating Certified." data-en="Enter video link and visual identifiers. AI Engine V3.6.0 will pinpoint the target player to extract biomechanics and issue a Certified Rating QR.">
-        Nhập link video và thông số nhận diện ngoại hình. AI Engine V3.6.0 sẽ định vị chính xác VĐV mục tiêu để bóc tách sinh trắc học và cấp Mã QR Rating Certified.
+      <div class="card-subtitle" data-vi="Bấm chọn nhanh các nút đặc điểm vị trí, trang phục và ngoại hình để AI định vị VĐV chính xác 100% trong trận đấu." data-en="Click quick-select buttons for position, apparel, and physical traits to pinpoint target player with 100% accuracy.">
+        Bấm chọn nhanh các nút đặc điểm vị trí, trang phục và ngoại hình để AI định vị VĐV chính xác 100% trong trận đấu.
       </div>
 
       <form id="rating-form">
+        <!-- 1. LINK VIDEO -->
         <div class="form-group">
-          <label data-vi="1. Nguồn Video (Link YouTube / Facebook / Drive):" data-en="1. Video Source (YouTube / Facebook / Drive Link):">1. Nguồn Video (Link YouTube / Facebook / Drive):</label>
+          <label data-vi="1. Link Video Trận Đấu (YouTube / Facebook / Drive):" data-en="1. Match Video Link (YouTube / Facebook / Drive):">1. Link Video Trận Đấu (YouTube / Facebook / Drive):</label>
           <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
         </div>
 
-        <!-- ĐỊNH VỊ SÂN ĐẤU -->
+        <!-- 2. VỊ TRÍ SÂN ĐẤU (NÚT BẤM FLEXIBLE) -->
+        <div class="form-group">
+          <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
+          <div class="badge-group" id="group-court-pos">
+            <span class="badge-opt active" onclick="selectBadge('group-court-pos', this, 'near_right')" data-vi="Sân Gần - Bên Phải" data-en="Near Court - Right">Sân Gần - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'near_left')" data-vi="Sân Gần - Bên Trái" data-en="Near Court - Left">Sân Gần - Bên Trái</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_right')" data-vi="Sân Xa - Bên Phải" data-en="Far Court - Right">Sân Xa - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_left')" data-vi="Sân Xa - Bên Trái" data-en="Far Court - Left">Sân Xa - Bên Trái</span>
+          </div>
+        </div>
+
+        <!-- 3. MÀU ÁO VĐV -->
+        <div class="form-group">
+          <label data-vi="3. Màu Áo Thi Đấu:" data-en="3. Shirt Color:">3. Màu Áo Thi Đấu:</label>
+          <div class="badge-group" id="group-shirt">
+            <span class="badge-opt active" onclick="selectBadge('group-shirt', this, 'Áo Trắng')" data-vi="Áo Trắng" data-en="White Shirt">Áo Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đen')" data-vi="Áo Đen" data-en="Black Shirt">Áo Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đỏ')" data-vi="Áo Đỏ" data-en="Red Shirt">Áo Đỏ</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Xanh Dương')" data-vi="Áo Xanh Dương" data-en="Blue Shirt">Áo Xanh Dương</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Vàng/Neon')" data-vi="Áo Vàng/Neon" data-en="Yellow/Neon Shirt">Áo Vàng/Neon</span>
+          </div>
+        </div>
+
+        <!-- 4. MÀU QUẦN VĐV -->
+        <div class="form-group">
+          <label data-vi="4. Màu Quần Thi Đấu:" data-en="4. Shorts/Pants Color:">4. Màu Quần Thi Đấu:</label>
+          <div class="badge-group" id="group-pants">
+            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xám')" data-vi="Quần Xám" data-en="Grey Shorts">Quần Xám</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xanh Navy')" data-vi="Quần Xanh Navy" data-en="Navy Shorts">Quần Xanh Navy</span>
+          </div>
+        </div>
+
+        <!-- 5. MÀU GIÀY & MŨ/NÓN -->
+        <div class="form-group">
+          <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
+          <div class="badge-group" id="group-shoes">
+            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ')" data-vi="Giày Đỏ" data-en="Red Shoes">Giày Đỏ</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Cam/Vàng')" data-vi="Giày Cam/Vàng" data-en="Orange/Yellow Shoes">Giày Cam/Vàng</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="6. Mũ / Nón / Băng Trán:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Băng Trán:</label>
+          <div class="badge-group" id="group-headwear">
+            <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Lưỡi Trai Trắng" data-en="White Cap">Mũ Lưỡi Trai Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Đen')" data-vi="Mũ Lưỡi Trai Đen" data-en="Black Cap">Mũ Lưỡi Trai Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Băng Trán / Headband')" data-vi="Băng Trán" data-en="Headband">Băng Trán</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
+          </div>
+        </div>
+
+        <!-- 7. THỂ HÌNH / NGOẠI HÌNH -->
+        <div class="form-group">
+          <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
+          <div class="badge-group" id="group-body">
+            <span class="badge-opt active" onclick="selectBadge('group-body', this, 'athletic')" data-vi="Thể Thao / Cân Cối" data-en="Athletic">Thể Thao / Cân Cối</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
+          </div>
+        </div>
+
+        <!-- 8. PH N HẠNG & LỊCH SỬ ĐẤU -->
         <div class="form-group grid-2">
           <div>
-            <label data-vi="Khoảng cách sân:" data-en="Court Depth:">Khoảng cách sân:</label>
-            <select id="court_distance" class="form-control">
-              <option value="near" selected data-vi="Sân Gần (Near Court)" data-en="Near Court">Sân Gần (Near Court)</option>
-              <option value="far" data-vi="Sân Xa (Far Court)" data-en="Far Court">Sân Xa (Far Court)</option>
-            </select>
-          </div>
-          <div>
-            <label data-vi="Vị trí đứng:" data-en="Court Side:">Vị trí đứng:</label>
-            <select id="player_position" class="form-control">
-              <option value="left" data-vi="Bên Trái (Left Side)" data-en="Left Side">Bên Trái (Left Side)</option>
-              <option value="right" selected data-vi="Bên Phải (Right Side)" data-en="Right Side">Bên Phải (Right Side)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- ĐỊNH VỊ TRANG PHỤC -->
-        <div class="form-group grid-3">
-          <div>
-            <label data-vi="Màu áo:" data-en="Shirt Color:">Màu áo:</label>
-            <input type="text" id="shirt_color" class="form-control" value="Áo Trắng">
-          </div>
-          <div>
-            <label data-vi="Màu giày:" data-en="Shoe Color:">Màu giày:</label>
-            <input type="text" id="shoe_color" class="form-control" value="Giày Đen">
-          </div>
-          <div>
-            <label data-vi="Mũ / Nón:" data-en="Headwear:">Mũ / Nón:</label>
-            <input type="text" id="headwear" class="form-control" value="Mũ Lưỡi Trai Trắng">
-          </div>
-        </div>
-
-        <!-- LỊCH SỬ ĐẤU & PHÂN HẠNG -->
-        <div class="form-group grid-3">
-          <div>
-            <label data-vi="Phân hạng VĐV:" data-en="Player Tier:">Phân hạng VĐV:</label>
+            <label data-vi="Phân Hạng Đăng Ký:" data-en="Register Tier:">Phân Hạng Đăng Ký:</label>
             <select id="player_tier" class="form-control">
               <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
               <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
@@ -311,12 +362,11 @@
             </select>
           </div>
           <div>
-            <label data-vi="Trận thắng:" data-en="Wins:">Trận thắng:</label>
-            <input type="number" id="match_wins" class="form-control" value="12">
-          </div>
-          <div>
-            <label data-vi="Tổng trận đấu:" data-en="Total Matches:">Tổng trận đấu:</label>
-            <input type="number" id="total_matches" class="form-control" value="15">
+            <label data-vi="Tỷ Lệ Thắng (Wins/Total):" data-en="Win Record (Wins/Total):">Tỷ Lệ Thắng (Wins/Total):</label>
+            <div style="display:flex; gap:6px;">
+              <input type="number" id="match_wins" class="form-control" value="12" placeholder="Wins">
+              <input type="number" id="total_matches" class="form-control" value="15" placeholder="Total">
+            </div>
           </div>
         </div>
 
@@ -328,7 +378,7 @@
 
     <!-- KHỐI HÀNG ĐỜI XỬ LÝ BACKGROUND TASK -->
     <div class="status-box" id="statusBox">
-      <i class="fa-solid fa-spinner fa-spin style="color:var(--accent-gold); font-size:20px; margin-bottom:8px;"></i>
+      <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:20px; margin-bottom:8px;"></i>
       <div id="statusText" data-vi="AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)..." data-en="Target player located. Calculating biomechanics in background (2-5s)...">
         AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)...
       </div>
@@ -364,7 +414,7 @@
 
       <div class="target-box">
         <strong style="color:var(--accent-gold);" data-vi="🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:" data-en="🎯 AI LOCATED TARGET:">🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:</strong>
-        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Giày Đen | Mũ Lưỡi Trai Trắng</div>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Quần Đen | Giày Đen | Mũ Lưỡi Trai Trắng</div>
       </div>
 
       <div class="qr-section">
@@ -384,6 +434,28 @@
   const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
   let currentLang = 'vi';
 
+  // LƯU TRỮ GIÁ TRỊ TỪ CÁC NÚT BẤM LINH HOẠT
+  const selectedValues = {
+    court_pos: 'near_right',
+    shirt: 'Áo Trắng',
+    pants: 'Quần Đen',
+    shoes: 'Giày Đen',
+    headwear: 'Mũ Lưỡi Trai Trắng',
+    body: 'athletic'
+  };
+
+  function selectBadge(groupId, el, val) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    if (groupId === 'group-court-pos') selectedValues.court_pos = val;
+    if (groupId === 'group-shirt') selectedValues.shirt = val;
+    if (groupId === 'group-pants') selectedValues.pants = val;
+    if (groupId === 'group-shoes') selectedValues.shoes = val;
+    if (groupId === 'group-headwear') selectedValues.headwear = val;
+    if (groupId === 'group-body') selectedValues.body = val;
+  }
+
   function toggleLanguage() {
     currentLang = currentLang === 'vi' ? 'en' : 'vi';
     document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
@@ -401,11 +473,16 @@
     const formData = new FormData();
     formData.append('video_url', document.getElementById('video_url').value);
     formData.append('lang', currentLang);
-    formData.append('court_distance', document.getElementById('court_distance').value);
-    formData.append('player_position', document.getElementById('player_position').value);
-    formData.append('shirt_color', document.getElementById('shirt_color').value);
-    formData.append('shoe_color', document.getElementById('shoe_color').value);
-    formData.append('headwear', document.getElementById('headwear').value);
+
+    // Tách giá trị sân gần/xa và trái/phải từ nút bấm
+    const posParts = selectedValues.court_pos.split('_');
+    formData.append('court_distance', posParts[0]); // 'near' hoặc 'far'
+    formData.append('player_position', posParts[1]); // 'left' hoặc 'right'
+
+    formData.append('shirt_color', `${selectedValues.shirt} / ${selectedValues.pants}`);
+    formData.append('shoe_color', selectedValues.shoes);
+    formData.append('headwear', selectedValues.headwear);
+    formData.append('body_type', selectedValues.body);
     formData.append('player_tier', document.getElementById('player_tier').value);
     formData.append('match_wins', document.getElementById('match_wins').value);
     formData.append('total_matches', document.getElementById('total_matches').value);
@@ -419,7 +496,6 @@
     passportCard.style.display = 'none';
 
     try {
-      // 1. Gửi request tới Backend V3.6.0
       const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
         method: 'POST',
         body: formData
@@ -427,13 +503,11 @@
       const data = await res.json();
 
       if (data.success && data.task_id) {
-        // Cập nhật thông tin định vị VĐV
         if (data.target_player_located) {
           const loc = data.target_player_located;
           document.getElementById('resTargetIdentity').innerText = 
             `${loc.depth} - ${loc.side} | ${loc.apparel.shirt} | ${loc.apparel.shoes} | ${loc.apparel.headwear}`;
         }
-        // 2. Poll kết quả qua Task ID
         pollTaskStatus(data.task_id);
       } else {
         alert(currentLang === 'vi' ? "❌ Khởi tạo thất bại!" : "❌ Task failed!");
