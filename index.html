@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pickleball AI Rating Passport - Flexible Target Engine V3.6.0</title>
+  <title>Pickleball AI Rating Passport - Precision Target Tracking V3.6.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -113,7 +113,6 @@
       outline: none;
     }
 
-    /* BỘ NÚT CHỌN LINH HOẠT (INTERACTIVE BADGES) */
     .badge-group {
       display: flex;
       flex-wrap: wrap;
@@ -143,11 +142,26 @@
       box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
     }
 
-    .badge-opt.active-gold {
-      background: var(--accent-gold);
-      color: #000;
-      border-color: var(--accent-gold);
-      font-weight: 800;
+    .custom-input-box {
+      display: none;
+      margin-top: 8px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .custom-input-box input {
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      color: #fff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -169,7 +183,6 @@
     .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
     .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* KHỐI TRẠNG THÁI & KẾT QUẢ PASSPORT */
     .status-box {
       display: none;
       background: #0f172a;
@@ -270,11 +283,11 @@
   <div class="main-container">
     
     <div class="card">
-      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV FLEXIBLE (V3.6.0)" data-en="⚡ FLEXIBLE AI RATING & PLAYER TARGETING (V3.6.0)">
-        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV FLEXIBLE (V3.6.0)
+      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)" data-en="⚡ AI RATING & TARGET TRACKING (V3.6.0)">
+        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)
       </h3>
-      <div class="card-subtitle" data-vi="Bấm chọn nhanh các nút đặc điểm vị trí, trang phục và ngoại hình để AI định vị VĐV chính xác 100% trong trận đấu." data-en="Click quick-select buttons for position, apparel, and physical traits to pinpoint target player with 100% accuracy.">
-        Bấm chọn nhanh các nút đặc điểm vị trí, trang phục và ngoại hình để AI định vị VĐV chính xác 100% trong trận đấu.
+      <div class="card-subtitle" data-vi="Bấm chọn nhanh các đặc điểm vị trí, trang phục hoặc bấm '+ Khác' để tự nhập thông tin giúp AI định vị chính xác 100% VĐV." data-en="Click preset traits or click '+ Custom' to enter custom details to pinpoint target player with 100% accuracy.">
+        Bấm chọn nhanh các đặc điểm vị trí, trang phục hoặc bấm '+ Khác' để tự nhập thông tin giúp AI định vị chính xác 100% VĐV.
       </div>
 
       <form id="rating-form">
@@ -284,7 +297,7 @@
           <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
         </div>
 
-        <!-- 2. VỊ TRÍ SÂN ĐẤU (NÚT BẤM FLEXIBLE) -->
+        <!-- 2. VỊ TRÍ SÂN ĐẤU -->
         <div class="form-group">
           <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
           <div class="badge-group" id="group-court-pos">
@@ -303,43 +316,56 @@
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đen')" data-vi="Áo Đen" data-en="Black Shirt">Áo Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đỏ')" data-vi="Áo Đỏ" data-en="Red Shirt">Áo Đỏ</span>
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Xanh Dương')" data-vi="Áo Xanh Dương" data-en="Blue Shirt">Áo Xanh Dương</span>
-            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Vàng/Neon')" data-vi="Áo Vàng/Neon" data-en="Yellow/Neon Shirt">Áo Vàng/Neon</span>
+            <span class="badge-opt" onclick="toggleCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập Áo Khác" data-en="✏️ + Custom Shirt">✏️ + Tự Nhập Áo Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-input-group-shirt">
+            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo/họa tiết (VD: Áo Tím Họa Tiết)...">
           </div>
         </div>
 
         <!-- 4. MÀU QUẦN VĐV -->
         <div class="form-group">
-          <label data-vi="4. Màu Quần Thi Đấu:" data-en="4. Shorts/Pants Color:">4. Màu Quần Thi Đấu:</label>
+          <label data-vi="4. Màu Quần / Váy Thi Đấu:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy Thi Đấu:</label>
           <div class="badge-group" id="group-pants">
             <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xám')" data-vi="Quần Xám" data-en="Grey Shorts">Quần Xám</span>
-            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xanh Navy')" data-vi="Quần Xanh Navy" data-en="Navy Shorts">Quần Xanh Navy</span>
+            <span class="badge-opt" onclick="toggleCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Pants">✏️ + Tự Nhập Quần Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-input-group-pants">
+            <input type="text" id="input-custom-pants" placeholder="Nhập kiểu/màu quần (VD: Váy Trắng)...">
           </div>
         </div>
 
-        <!-- 5. MÀU GIÀY & MŨ/NÓN -->
+        <!-- 5. MÀU GIÀY -->
         <div class="form-group">
           <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
           <div class="badge-group" id="group-shoes">
             <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
-            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ')" data-vi="Giày Đỏ" data-en="Red Shoes">Giày Đỏ</span>
-            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Cam/Vàng')" data-vi="Giày Cam/Vàng" data-en="Orange/Yellow Shoes">Giày Cam/Vàng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ/Vàng')" data-vi="Giày Đỏ/Vàng" data-en="Red/Yellow Shoes">Giày Đỏ/Vàng</span>
+            <span class="badge-opt" onclick="toggleCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Giày Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Giày Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-input-group-shoes">
+            <input type="text" id="input-custom-shoes" placeholder="Nhập màu/mẫu giày (VD: Giày Tím Xanh)...">
           </div>
         </div>
 
+        <!-- 6. MỮ / NÓN -->
         <div class="form-group">
           <label data-vi="6. Mũ / Nón / Băng Trán:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Băng Trán:</label>
           <div class="badge-group" id="group-headwear">
             <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Lưỡi Trai Trắng" data-en="White Cap">Mũ Lưỡi Trai Trắng</span>
             <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Đen')" data-vi="Mũ Lưỡi Trai Đen" data-en="Black Cap">Mũ Lưỡi Trai Đen</span>
-            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Băng Trán / Headband')" data-vi="Băng Trán" data-en="Headband">Băng Trán</span>
             <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
+            <span class="badge-opt" onclick="toggleCustomInput('group-headwear', this)" data-vi="✏️ + Tự Nhập Nón Khác" data-en="✏️ + Custom Headwear">✏️ + Tự Nhập Nón Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-input-group-headwear">
+            <input type="text" id="input-custom-headwear" placeholder="Nhập phụ kiện đầu (VD: Mũ Nửa Đầu Đỏ)...">
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH / NGOẠI HÌNH -->
+        <!-- 7. THỂ HÌNH -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -434,7 +460,6 @@
   const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
   let currentLang = 'vi';
 
-  // LƯU TRỮ GIÁ TRỊ TỪ CÁC NÚT BẤM LINH HOẠT
   const selectedValues = {
     court_pos: 'near_right',
     shirt: 'Áo Trắng',
@@ -444,9 +469,23 @@
     body: 'athletic'
   };
 
+  const isCustomInput = {
+    shirt: false,
+    pants: false,
+    shoes: false,
+    headwear: false
+  };
+
   function selectBadge(groupId, el, val) {
     document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
     el.classList.add('active');
+
+    const inputKey = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-input-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'none';
+      isCustomInput[inputKey] = false;
+    }
 
     if (groupId === 'group-court-pos') selectedValues.court_pos = val;
     if (groupId === 'group-shirt') selectedValues.shirt = val;
@@ -454,6 +493,20 @@
     if (groupId === 'group-shoes') selectedValues.shoes = val;
     if (groupId === 'group-headwear') selectedValues.headwear = val;
     if (groupId === 'group-body') selectedValues.body = val;
+  }
+
+  function toggleCustomInput(groupId, el) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const inputKey = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-input-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'block';
+      isCustomInput[inputKey] = true;
+      const inputEl = customBox.querySelector('input');
+      if (inputEl) inputEl.focus();
+    }
   }
 
   function toggleLanguage() {
@@ -474,14 +527,18 @@
     formData.append('video_url', document.getElementById('video_url').value);
     formData.append('lang', currentLang);
 
-    // Tách giá trị sân gần/xa và trái/phải từ nút bấm
     const posParts = selectedValues.court_pos.split('_');
-    formData.append('court_distance', posParts[0]); // 'near' hoặc 'far'
-    formData.append('player_position', posParts[1]); // 'left' hoặc 'right'
+    formData.append('court_distance', posParts[0]);
+    formData.append('player_position', posParts[1]);
 
-    formData.append('shirt_color', `${selectedValues.shirt} / ${selectedValues.pants}`);
-    formData.append('shoe_color', selectedValues.shoes);
-    formData.append('headwear', selectedValues.headwear);
+    const shirtVal = isCustomInput.shirt ? (document.getElementById('input-custom-shirt').value.trim() || 'Custom Shirt') : selectedValues.shirt;
+    const pantsVal = isCustomInput.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Custom Pants') : selectedValues.pants;
+    const shoesVal = isCustomInput.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Custom Shoes') : selectedValues.shoes;
+    const headwearVal = isCustomInput.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Custom Headwear') : selectedValues.headwear;
+
+    formData.append('shirt_color', `${shirtVal} / ${pantsVal}`);
+    formData.append('shoe_color', shoesVal);
+    formData.append('headwear', headwearVal);
     formData.append('body_type', selectedValues.body);
     formData.append('player_tier', document.getElementById('player_tier').value);
     formData.append('match_wins', document.getElementById('match_wins').value);
