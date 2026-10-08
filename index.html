@@ -319,7 +319,7 @@
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập Áo Khác" data-en="✏️ + Custom Shirt">✏️ + Tự Nhập Áo Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-shirt">
-            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo chi tiết (Ví dụ: Áo Tím Họa Tiết, Áo Ba Lỗ Vàng)...">
+            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo chi tiết (Ví dụ: Áo Tím Họa Tiết)...">
           </div>
         </div>
 
@@ -347,7 +347,7 @@
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Giày Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Giày Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-shoes">
-            <input type="text" id="input-custom-shoes" placeholder="Nhập mẫu/màu giày (Ví dụ: Giày Tím Xanh Neon)...">
+            <input type="text" id="input-custom-shoes" placeholder="Nhập mẫu/màu giày (Ví dụ: Giày Tím Neon)...">
           </div>
         </div>
 
@@ -361,11 +361,11 @@
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-headwear', this)" data-vi="✏️ + Tự Nhập Nón Khác" data-en="✏️ + Custom Cap">✏️ + Tự Nhập Nón Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-headwear">
-            <input type="text" id="input-custom-headwear" placeholder="Nhập phụ kiện đầu (Ví dụ: Băng Trán Đỏ, Mũ Nửa Đầu)...">
+            <input type="text" id="input-custom-headwear" placeholder="Nhập phụ kiện đầu (Ví dụ: Băng Trán Đỏ)...">
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH / DÁNG NGƯỜI (CÓ THÊM NÚT TỰ NHẬP KHÁC) -->
+        <!-- 7. THỂ HÌNH / NGOẠI HÌNH (CÓ NÚT TỰ NHẬP NGOẠI HÌNH) -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -373,10 +373,10 @@
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
-            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Thể Hình Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Thể Hình Khác</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Ngoại Hình Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Ngoại Hình Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-body">
-            <input type="text" id="input-custom-body" placeholder="Nhập thể hình/dáng người (Ví dụ: Đô Con, Rất Cao)...">
+            <input type="text" id="input-custom-body" placeholder="Nhập chi tiết ngoại hình (VD: Cao Lớn, Đô Con, Nhỏ Con)...">
           </div>
         </div>
 
@@ -540,9 +540,23 @@
     const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Tự Nhập') : selectedValues.pants;
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
-    const bodyVal = isCustomActive.body ? (document.getElementById('input-custom-body').value.trim() || 'athletic') : selectedValues.body;
+    
+    let bodyVal = selectedValues.body;
+    if (isCustomActive.body) {
+      const customBodyText = document.getElementById('input-custom-body').value.trim().toLowerCase();
+      if (customBodyText.includes('thon') || customBodyText.includes('gọn') || customBodyText.includes('cao')) {
+        bodyVal = 'slim';
+      } else if (customBodyText.includes('đô') || customBodyText.includes('to') || customBodyText.includes('đậm') || customBodyText.includes('mập')) {
+        bodyVal = 'heavy';
+      } else if (customBodyText.includes('trung bình') || customBodyText.includes('vừa')) {
+        bodyVal = 'average';
+      } else {
+        bodyVal = 'athletic';
+      }
+    }
 
-    formData.append('shirt_color', `${shirtVal} (${pantsVal})`);
+    // Gửi giá trị chuỗi sạch chuẩn hóa (không dùng ngoặc đơn)
+    formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
     formData.append('shoe_color', shoesVal);
     formData.append('headwear', headwearVal);
     formData.append('body_type', bodyVal);
@@ -558,23 +572,19 @@
     statusBox.style.display = 'block';
     passportCard.style.display = 'none';
 
-    // Tự động kiểm tra ping server trước khi gửi dữ liệu
     document.getElementById('statusText').innerText = currentLang === 'vi' 
-      ? "Đang kết nối đến máy chủ AI (Đợi Render đánh thức 15-30s nếu cần)..." 
-      : "Connecting to AI Server (Warming up Render instance)...";
+      ? "Đang gửi dữ liệu phân tích đến máy chủ AI..." 
+      : "Sending analysis request to AI Server...";
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
         method: 'POST',
-        body: formData,
-        mode: 'cors'
+        body: formData
       });
-
-      if (!res.ok) throw new Error(`HTTP Error status: ${res.status}`);
 
       const data = await res.json();
 
-      if (data.success && data.task_id) {
+      if (res.ok && data.success && data.task_id) {
         if (data.target_player_located) {
           const loc = data.target_player_located;
           document.getElementById('resTargetIdentity').innerText = 
@@ -582,15 +592,15 @@
         }
         pollTaskStatus(data.task_id);
       } else {
-        alert(currentLang === 'vi' ? `❌ Thất bại: ${data.message}` : `❌ Failed: ${data.message}`);
+        alert(currentLang === 'vi' ? `❌ Thất bại: ${data.detail || data.message || 'Lỗi xử lý dữ liệu'}` : `❌ Failed: ${data.detail || data.message || 'Data error'}`);
         btn.disabled = false;
         statusBox.style.display = 'none';
       }
     } catch (err) {
       console.error(err);
       alert(currentLang === 'vi' 
-        ? "⚡ Server Render đang khởi động từ trạng thái nghỉ (Cold Start).\nVui lòng mở link https://pickleball-ai-engine.onrender.com/ trên tab mới để kích hoạt server rồi bấm lại nhé!" 
-        : "⚡ Server is waking up. Please open https://pickleball-ai-engine.onrender.com/ in a new tab to trigger active state then retry!");
+        ? "⚡ Máy chủ Render đang bận hoặc đang khởi động lại. Vui lòng thử lại sau vài giây!" 
+        : "⚡ Server busy or restarting. Please retry in a few seconds!");
       btn.disabled = false;
       statusBox.style.display = 'none';
     }
