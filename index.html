@@ -365,7 +365,7 @@
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH -->
+        <!-- 7. THỂ HÌNH / DÁNG NGƯỜI (CÓ THÊM NÚT TỰ NHẬP KHÁC) -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -373,6 +373,10 @@
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Thể Hình Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Thể Hình Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-body">
+            <input type="text" id="input-custom-body" placeholder="Nhập thể hình/dáng người (Ví dụ: Đô Con, Rất Cao)...">
           </div>
         </div>
 
@@ -473,7 +477,8 @@
     shirt: false,
     pants: false,
     shoes: false,
-    headwear: false
+    headwear: false,
+    body: false
   };
 
   function selectBadge(groupId, el, val) {
@@ -524,26 +529,23 @@
 
   async function startAIAnalysis() {
     const formData = new FormData();
-    
-    // 1. URL Video & Ngôn ngữ
     formData.append('video_url', document.getElementById('video_url').value);
     formData.append('lang', currentLang);
 
-    // 2. Vị trí sân
     const posParts = selectedValues.court_pos.split('_');
     formData.append('court_distance', posParts[0]);
     formData.append('player_position', posParts[1]);
 
-    // 3. Xử lý giá trị tự nhập từ nút + Tự Nhập Khác
     const shirtVal = isCustomActive.shirt ? (document.getElementById('input-custom-shirt').value.trim() || 'Áo Tự Nhập') : selectedValues.shirt;
     const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Tự Nhập') : selectedValues.pants;
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
+    const bodyVal = isCustomActive.body ? (document.getElementById('input-custom-body').value.trim() || 'athletic') : selectedValues.body;
 
     formData.append('shirt_color', `${shirtVal} (${pantsVal})`);
     formData.append('shoe_color', shoesVal);
     formData.append('headwear', headwearVal);
-    formData.append('body_type', selectedValues.body);
+    formData.append('body_type', bodyVal);
     formData.append('player_tier', document.getElementById('player_tier').value);
     formData.append('match_wins', document.getElementById('match_wins').value);
     formData.append('total_matches', document.getElementById('total_matches').value);
@@ -556,16 +558,19 @@
     statusBox.style.display = 'block';
     passportCard.style.display = 'none';
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // Tự động kiểm tra ping server trước khi gửi dữ liệu
+    document.getElementById('statusText').innerText = currentLang === 'vi' 
+      ? "Đang kết nối đến máy chủ AI (Đợi Render đánh thức 15-30s nếu cần)..." 
+      : "Connecting to AI Server (Warming up Render instance)...";
 
+    try {
       const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
         method: 'POST',
         body: formData,
-        signal: controller.signal
+        mode: 'cors'
       });
-      clearTimeout(timeoutId);
+
+      if (!res.ok) throw new Error(`HTTP Error status: ${res.status}`);
 
       const data = await res.json();
 
@@ -577,12 +582,15 @@
         }
         pollTaskStatus(data.task_id);
       } else {
-        alert(currentLang === 'vi' ? `❌ Khởi tạo thất bại: ${data.message || 'Lỗi server'}` : `❌ Failed: ${data.message || 'Server error'}`);
+        alert(currentLang === 'vi' ? `❌ Thất bại: ${data.message}` : `❌ Failed: ${data.message}`);
         btn.disabled = false;
         statusBox.style.display = 'none';
       }
     } catch (err) {
-      alert(currentLang === 'vi' ? "❌ Server Render đang khởi động (Cold Start). Vui lòng đợi 30 giây rồi bấm thử lại!" : "❌ Server is warming up. Please retry in 30 seconds!");
+      console.error(err);
+      alert(currentLang === 'vi' 
+        ? "⚡ Server Render đang khởi động từ trạng thái nghỉ (Cold Start).\nVui lòng mở link https://pickleball-ai-engine.onrender.com/ trên tab mới để kích hoạt server rồi bấm lại nhé!" 
+        : "⚡ Server is waking up. Please open https://pickleball-ai-engine.onrender.com/ in a new tab to trigger active state then retry!");
       btn.disabled = false;
       statusBox.style.display = 'none';
     }
