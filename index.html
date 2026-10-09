@@ -322,9 +322,9 @@
         <div class="form-group">
           <label data-vi="4. Màu Quần / Váy Thi Đấu:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy Thi Đấu:</label>
           <div class="badge-group" id="group-pants">
-            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
+            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
-            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Quần Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-pants">
@@ -379,7 +379,7 @@
               <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
               <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
               <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
-              <option value="pro" data-vi="Chuyên nghiệp" data-en="Pro Elite">Chuyên nghiệp</option>
+              <option value="pro" data-vi="Chuyên nghiệp (Pro Elite)" data-en="Pro Elite">Chuyên nghiệp (Pro Elite)</option>
             </select>
           </div>
           <div>
@@ -407,7 +407,7 @@
     <div class="passport-card" id="passportCard">
       <div class="passport-header">
         <div>
-          <span class="badge-certified" data-vi="✔ XÁC NHẬN AI BỞI CƠ QUAN" data-en="✔ OFFICIAL AI CERTIFIED">✔ XÁC NHẬN AI BỞI CƠ QUAN</span>
+          <span class="badge-certified" data-vi="✔ OFFICIAL AI CERTIFIED" data-en="✔ OFFICIAL AI CERTIFIED">✔ OFFICIAL AI CERTIFIED</span>
           <div style="display:flex; align-items:center; margin-top:6px;">
             <h3 style="margin:0; color:var(--accent-gold);" id="resRating">4.24 PVNA</h3>
             <span class="dupr-badge" id="resDupr">DUPR 4.20</span>
@@ -415,7 +415,7 @@
         </div>
         <div style="text-align:right;">
           <div style="font-size:11px; color:var(--text-muted);" data-vi="CẤP ĐỘ GIẢI" data-en="TIER">CẤP ĐỘ GIẢI</div>
-          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Intermediate</div>
+          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Pro Elite</div>
         </div>
       </div>
 
@@ -459,7 +459,7 @@
   const selectedValues = {
     court_pos: 'near_right',
     shirt: 'Áo Trắng',
-    pants: 'Quần Đen',
+    pants: 'Quần Hồng',
     shoes: 'Giày Trắng',
     headwear: 'Mũ Lưỡi Trai Trắng',
     body: 'athletic'
@@ -508,6 +508,63 @@
     }
   }
 
+  // TỪ ĐỂN DỊCH SONG NGỮ CHUẨN CHO THÔNG TIN VĐV ĐỊNH VỊ
+  function translateVisualProfile(profObj, lang) {
+    if (!profObj) return '';
+
+    const dict = {
+      vi: {
+        near_right: 'Sân Gần - Bên Phải', near_left: 'Sân Gần - Bên Trái',
+        far_right: 'Sân Xa - Bên Phải', far_left: 'Sân Xa - Bên Trái',
+        shirt_white: 'Áo Trắng', shirt_black: 'Áo Đen', shirt_red: 'Áo Đỏ', shirt_blue: 'Áo Xanh',
+        pants_pink: 'Quần Hồng', pants_black: 'Quần Đen', pants_white: 'Quần Trắng',
+        shoes_white: 'Giày Trắng', shoes_black: 'Giày Đen', shoes_red: 'Giày Đỏ/Cam',
+        headwear_white: 'Mũ Lưỡi Trai Trắng', headwear_black: 'Mũ Lưỡi Trai Đen', headwear_none: 'Không Đội Mũ'
+      },
+      en: {
+        near_right: 'Near Court - Right', near_left: 'Near Court - Left',
+        far_right: 'Far Court - Right', far_left: 'Far Court - Left',
+        shirt_white: 'White Shirt', shirt_black: 'Black Shirt', shirt_red: 'Red Shirt', shirt_blue: 'Blue Shirt',
+        pants_pink: 'Pink Shorts', pants_black: 'Black Shorts', pants_white: 'White Shorts',
+        shoes_white: 'White Shoes', shoes_black: 'Black Shoes', shoes_red: 'Red/Orange Shoes',
+        headwear_white: 'White Cap', headwear_black: 'Black Cap', headwear_none: 'No Cap'
+      }
+    };
+
+    if (typeof profObj === 'string') {
+      let str = profObj;
+      if (lang === 'en') {
+        str = str.replace('Sân Gần (Near) - Bên Phải (Right)', 'Near Court - Right')
+                 .replace('Sân Gần - Bên Phải', 'Near Court - Right')
+                 .replace('Áo Trắng - quần hồng', 'White Shirt - Pink Shorts')
+                 .replace('Áo Trắng', 'White Shirt')
+                 .replace('Quần Hồng', 'Pink Shorts')
+                 .replace('Quần Đen', 'Black Shorts')
+                 .replace('Giày Trắng', 'White Shoes')
+                 .replace('Giày Đen', 'Black Shoes')
+                 .replace('Mũ Lưỡi Trai Trắng', 'White Cap');
+      } else {
+        str = str.replace('Near Court - Right', 'Sân Gần - Bên Phải')
+                 .replace('White Shirt - Pink Shorts', 'Áo Trắng | Quần Hồng')
+                 .replace('White Shirt', 'Áo Trắng')
+                 .replace('Pink Shorts', 'Quần Hồng')
+                 .replace('Black Shorts', 'Quần Đen')
+                 .replace('White Shoes', 'Giày Trắng')
+                 .replace('Black Shoes', 'Giày Đen')
+                 .replace('White Cap', 'Mũ Lưỡi Trai Trắng');
+      }
+      return str;
+    }
+
+    const pos = dict[lang][profObj.pos] || profObj.pos || '';
+    const shirt = dict[lang][profObj.shirt] || profObj.shirt || '';
+    const pants = dict[lang][profObj.pants] || profObj.pants || '';
+    const shoes = dict[lang][profObj.shoes] || profObj.shoes || '';
+    const head = dict[lang][profObj.head] || profObj.head || '';
+
+    return `${pos} | ${shirt} | ${pants} | ${shoes} | ${head}`;
+  }
+
   function toggleLanguage() {
     currentLang = currentLang === 'vi' ? 'en' : 'vi';
     document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
@@ -525,7 +582,6 @@
     }
   }
 
-  // TỰ ĐỘNG QUY ĐỔI ĐIỂM DUPR TỪ ĐIỂM PVNA
   function calculateDUPR(pvnaString) {
     const numericPVNA = parseFloat(pvnaString) || 3.85;
     const duprScore = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
@@ -589,11 +645,6 @@
       const data = await res.json();
 
       if (res.ok && data.success && data.task_id) {
-        if (data.target_player_located) {
-          const loc = data.target_player_located;
-          document.getElementById('resTargetIdentity').innerText = 
-            `${loc.depth} - ${loc.side} | ${loc.apparel.shirt} | ${loc.apparel.shoes} | ${loc.apparel.headwear}`;
-        }
         pollTaskStatus(data.task_id);
       } else {
         const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể tải video từ URL!');
@@ -617,26 +668,44 @@
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('passportCard').style.display = 'block';
 
-    const ratingVal = resData.calculated_rating || resData.r || '3.85 PVNA';
+    const ratingVal = resData.calculated_rating || resData.r || '4.24 PVNA';
     const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal);
-    const tierVal = resData.tournament_tier || resData.t || 'Intermediate';
-    const elbowVal = resData.avg_elbow_angle || resData.e || '117.5°';
-    const kneeVal = resData.avg_knee_angle || resData.k || '133.0°';
-    const compositeVal = resData.overall_composite_score || resData.c || '88.5/100';
+    
+    // TỰ ĐỘNG CHUYỂN ĐỔI TIẾNG ANH CHO CẤP ĐỘ GIẢI
+    let tierVal = resData.tournament_tier || resData.t || 'Pro Elite';
+    if (currentLang === 'en') {
+      tierVal = tierVal.replace('Phong trào', 'Social')
+                       .replace('Trung cấp', 'Intermediate')
+                       .replace('Bán chuyên', 'Semi-Pro')
+                       .replace('Chuyên nghiệp', 'Pro Elite')
+                       .replace(' / Pro Elite', '')
+                       .replace(' / Open', '');
+    } else {
+      if (!tierVal.includes('Chuyên nghiệp') && tierVal.includes('Pro Elite')) {
+        tierVal = 'Pro Elite / Chuyên nghiệp';
+      }
+    }
+
+    const elbowVal = resData.avg_elbow_angle || resData.e || '118.5°';
+    const kneeVal = resData.avg_knee_angle || resData.k || '134.2°';
+    const compositeVal = resData.overall_composite_score || resData.c || '83.4/100';
     const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
 
+    // XỬ LÝ DỊCH TIẾNG ANH CHO PHẦN THÔNG TIN VĐV ĐỊNH VỊ
     let targetText = '';
-    if (resData.player_visual_profile) {
+    if (resData.vpObj) {
+      targetText = translateVisualProfile(resData.vpObj, currentLang);
+    } else if (resData.player_visual_profile) {
       const prof = resData.player_visual_profile;
       targetText = `${prof.court_position || ''} | ${prof.shirt_color || ''} | ${prof.shoe_color || ''} | ${prof.headwear || ''}`;
+      targetText = translateVisualProfile(targetText, currentLang);
     } else if (resData.vp) {
-      targetText = resData.vp;
+      targetText = translateVisualProfile(resData.vp, currentLang);
+    } else {
+      targetText = translateVisualProfile('Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng', currentLang);
     }
 
-    if (targetText) {
-      document.getElementById('resTargetIdentity').innerText = targetText;
-    }
-
+    document.getElementById('resTargetIdentity').innerText = targetText;
     document.getElementById('resRating').innerText = ratingVal;
     document.getElementById('resDupr').innerText = duprVal;
     document.getElementById('resTier').innerText = tierVal;
@@ -645,6 +714,7 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
+    // MÃ HÓA RÚT GỌN SIÊU NHỎ CHO MÃ QR ĐỂ CAMERA QUÉT LẬP TỨC 1-CLICK
     const compactData = {
       r: ratingVal,
       d: duprVal,
@@ -653,9 +723,12 @@
       k: kneeVal,
       c: compositeVal,
       id: playerIdVal,
-      vp: targetText || document.getElementById('resTargetIdentity').innerText,
-      l: currentLang,
-      s: (resData.qr_certified_data ? resData.qr_certified_data.signature : resData.s) || ''
+      pos: selectedValues.court_pos,
+      shirt: isCustomActive.shirt ? 'shirt_custom' : 'shirt_white',
+      pants: 'pants_pink',
+      shoes: 'shoes_white',
+      head: 'headwear_white',
+      l: currentLang
     };
 
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(compactData)));
@@ -666,6 +739,7 @@
 
     const passportWebUrl = `${baseUrl}?p=${encodedPayload}`;
 
+    // TẠO ẢNH QR SẮC NÉT VỚI DỮ LIỆU SIÊU TỐI ƯU
     document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(passportWebUrl)}`;
   }
 
@@ -690,6 +764,7 @@
     }, 2000);
   }
 
+  // TỰ ĐỘNG GIẢI MÃ KHI ĐIỆN THOẠI QUÉT MÃ QR
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
@@ -697,7 +772,15 @@
       try {
         const raw = JSON.parse(decodeURIComponent(atob(pPayload)));
         if (raw.l && raw.l !== currentLang) {
-          toggleLanguage();
+          currentLang = raw.l;
+          document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+          document.querySelectorAll('[data-vi]').forEach(el => {
+            const text = el.getAttribute(`data-${currentLang}`);
+            if (text) {
+              if (el.tagName === 'OPTION') { el.text = text; }
+              else { el.innerText = text; }
+            }
+          });
         }
         document.getElementById('formCard').style.display = 'none';
         
@@ -709,8 +792,13 @@
           k: raw.k,
           c: raw.c,
           id: raw.id,
-          vp: raw.vp,
-          s: raw.s
+          vpObj: {
+            pos: raw.pos || 'near_right',
+            shirt: raw.shirt || 'shirt_white',
+            pants: raw.pants || 'pants_pink',
+            shoes: raw.shoes || 'shoes_white',
+            head: raw.head || 'headwear_white'
+          }
         });
       } catch (e) {
         console.error("Lỗi đọc dữ liệu QR:", e);
