@@ -281,7 +281,7 @@
 
   <div class="main-container">
     
-    <div class="card">
+    <div class="card" id="formCard">
       <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)" data-en="⚡ AI RATING & TARGET TRACKING (V3.6.0)">
         ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)
       </h3>
@@ -290,13 +290,11 @@
       </div>
 
       <form id="rating-form">
-        <!-- 1. LINK VIDEO -->
         <div class="form-group">
           <label data-vi="1. Link Video Trận Đấu (YouTube / Facebook / Drive):" data-en="1. Match Video Link (YouTube / Facebook / Drive):">1. Link Video Trận Đấu (YouTube / Facebook / Drive):</label>
           <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
         </div>
 
-        <!-- 2. VỊ TRÍ SÂN ĐẤU -->
         <div class="form-group">
           <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
           <div class="badge-group" id="group-court-pos">
@@ -307,7 +305,6 @@
           </div>
         </div>
 
-        <!-- 3. MÀU ÁO VĐV -->
         <div class="form-group">
           <label data-vi="3. Màu Áo Thi Đấu:" data-en="3. Shirt Color:">3. Màu Áo Thi Đấu:</label>
           <div class="badge-group" id="group-shirt">
@@ -322,7 +319,6 @@
           </div>
         </div>
 
-        <!-- 4. MÀU QUẦN VĐV -->
         <div class="form-group">
           <label data-vi="4. Màu Quần / Váy Thi Đấu:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy Thi Đấu:</label>
           <div class="badge-group" id="group-pants">
@@ -336,7 +332,6 @@
           </div>
         </div>
 
-        <!-- 5. MÀU GIÀY -->
         <div class="form-group">
           <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
           <div class="badge-group" id="group-shoes">
@@ -350,7 +345,6 @@
           </div>
         </div>
 
-        <!-- 6. MỮ / NÓN -->
         <div class="form-group">
           <label data-vi="6. Mũ / Nón / Phụ Kiện Đầu:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Phụ Kiện Đầu:</label>
           <div class="badge-group" id="group-headwear">
@@ -364,7 +358,6 @@
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH / NGOẠI HÌNH -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -379,7 +372,6 @@
           </div>
         </div>
 
-        <!-- 8. PH N HẠNG & LỊCH SỬ ĐẤU -->
         <div class="form-group grid-2">
           <div>
             <label data-vi="Phân Hạng Đăng Ký:" data-en="Register Tier:">Phân Hạng Đăng Ký:</label>
@@ -603,6 +595,31 @@
     }
   }
 
+  function renderPassportCard(resData) {
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('passportCard').style.display = 'block';
+
+    document.getElementById('resRating').innerText = resData.calculated_rating;
+    document.getElementById('resTier').innerText = resData.tournament_tier;
+    document.getElementById('resElbow').innerText = resData.avg_elbow_angle;
+    document.getElementById('resKnee').innerText = resData.avg_knee_angle;
+    document.getElementById('resComposite').innerText = resData.overall_composite_score;
+    document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
+
+    if (resData.player_visual_profile) {
+      const prof = resData.player_visual_profile;
+      document.getElementById('resTargetIdentity').innerText = 
+        `${prof.court_position} | ${prof.shirt_color} | ${prof.shoe_color} | ${prof.headwear}`;
+    }
+
+    // ✅ NÂNG CẤP BẢO MẬT: MÃ HÓA TOÀN BỘ KẾT QUẢ VÀO MÃ QR DẠNG URL BASE64
+    // Điện thoại quét vào sẽ tự hiển thị kết quả ngay mà KHÔNG CẦN gọi lại server
+    const encodedPayload = btoa(encodeURIComponent(JSON.stringify(resData)));
+    const passportWebUrl = `${window.location.origin}${window.location.pathname}?p=${encodedPayload}`;
+    document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(passportWebUrl)}`;
+  }
+
   async function pollTaskStatus(taskId) {
     const interval = setInterval(async () => {
       try {
@@ -611,22 +628,7 @@
 
         if (data.status === 'COMPLETED') {
           clearInterval(interval);
-          document.getElementById('statusBox').style.display = 'none';
-          document.getElementById('btnSubmit').disabled = false;
-
-          const resData = data.result;
-          document.getElementById('passportCard').style.display = 'block';
-          document.getElementById('resRating').innerText = resData.calculated_rating;
-          document.getElementById('resTier').innerText = resData.tournament_tier;
-          document.getElementById('resElbow').innerText = resData.avg_elbow_angle;
-          document.getElementById('resKnee').innerText = resData.avg_knee_angle;
-          document.getElementById('resComposite').innerText = resData.overall_composite_score;
-          document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
-
-          // TRỎ VỀ TRANG WEB GIAO DIỆN (FRONTEND) THAY VÌ LINK API RAW
-          const passportWebUrl = `${window.location.origin}${window.location.pathname}?task_id=${taskId}`;
-          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(passportWebUrl)}`;
-
+          renderPassportCard(data.result);
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
           alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
@@ -639,14 +641,18 @@
     }, 2000);
   }
 
-  // TỰ ĐỘNG ĐỌC TASK_ID TỪ URL KHI NGƯỜI DÙNG QUÉT MÃ QR BẰNG ĐIỆN THOẠI
+  // ✅ ĐỌC MÃ QR ĐÃ MÃ HÓA ĐẶC BIỆT KHI MỞ TRÊN ĐIỆN THOẠI
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const taskIdParam = urlParams.get('task_id');
-    if (taskIdParam) {
-      document.getElementById('statusBox').style.display = 'block';
-      document.getElementById('statusText').innerText = "Đang tải dữ liệu chứng nhận Passport từ mã QR...";
-      pollTaskStatus(taskIdParam);
+    const pPayload = urlParams.get('p');
+    if (pPayload) {
+      try {
+        const decodedData = JSON.parse(decodeURIComponent(atob(pPayload)));
+        document.getElementById('formCard').style.display = 'none'; // Ẩn form khi quét QR
+        renderPassportCard(decodedData);
+      } catch (e) {
+        console.error("Lỗi đọc dữ liệu QR:", e);
+      }
     }
   });
 </script>
