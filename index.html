@@ -626,9 +626,9 @@
           document.getElementById('resComposite').innerText = resData.overall_composite_score;
           document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
 
-          // QR DẠNG URL CHUẨN XÁC THỰC
-          const verifyUrl = `${API_BASE_URL}/api/task-status/${taskId}`;
-          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
+          // CẬP NHẬT: Mã hóa URL giao diện Web thay vì link API để khi điện thoại quét sẽ mở thẳng trang web
+          const passportWebUrl = `${window.location.origin}${window.location.pathname}?task_id=${taskId}`;
+          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(passportWebUrl)}`;
 
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
@@ -641,6 +641,17 @@
       }
     }, 2000);
   }
+
+  // TỰ ĐỘNG ĐỌC TASK ID KHI NGƯỜI DÙNG QUÉT MÃ QR BẰNG ĐIỆN THOẠI
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const taskIdParam = urlParams.get('task_id');
+    if (taskIdParam) {
+      document.getElementById('statusBox').style.display = 'block';
+      document.getElementById('statusText').innerText = "Đang tải dữ liệu chứng nhận Passport từ mã QR...";
+      pollTaskStatus(taskIdParam);
+    }
+  });
 </script>
 </body>
 </html>
