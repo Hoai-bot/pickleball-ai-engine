@@ -597,6 +597,19 @@
     const compositeVal = resData.overall_composite_score || resData.c || '88.5/100';
     const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
 
+    // XỬ LÝ TRUYỀN DỮ LIỆU TRANG PHỤC VĐV DỰA TRÊN PAYLOAD
+    let targetText = '';
+    if (resData.player_visual_profile) {
+      const prof = resData.player_visual_profile;
+      targetText = `${prof.court_position || ''} | ${prof.shirt_color || ''} | ${prof.shoe_color || ''} | ${prof.headwear || ''}`;
+    } else if (resData.vp) {
+      targetText = resData.vp;
+    }
+
+    if (targetText) {
+      document.getElementById('resTargetIdentity').innerText = targetText;
+    }
+
     document.getElementById('resRating').innerText = ratingVal;
     document.getElementById('resTier').innerText = tierVal;
     document.getElementById('resElbow').innerText = elbowVal;
@@ -604,12 +617,7 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    if (resData.player_visual_profile) {
-      const prof = resData.player_visual_profile;
-      document.getElementById('resTargetIdentity').innerText = 
-        `${prof.court_position} | ${prof.shirt_color} | ${prof.shoe_color} | ${prof.headwear}`;
-    }
-
+    // NÂNG CẤP: ĐÓNG GÓI THÊM THUỘC TÍNH 'vp' (VISUAL PROFILE) VÀO PAYLOAD RÚT GỌN
     const compactData = {
       r: ratingVal,
       t: tierVal,
@@ -617,12 +625,12 @@
       k: kneeVal,
       c: compositeVal,
       id: playerIdVal,
+      vp: targetText || document.getElementById('resTargetIdentity').innerText,
       s: (resData.qr_certified_data ? resData.qr_certified_data.signature : resData.s) || ''
     };
 
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(compactData)));
 
-    // TỰ ĐỘNG LẤY LINK DOMAIN GITHUB PAGES CHÍNH CHỦ
     const baseUrl = window.location.protocol.startsWith('http') 
       ? `${window.location.origin}${window.location.pathname}` 
       : 'https://hoai-bot.github.io/pickleball-ai-engine/';
@@ -660,7 +668,18 @@
       try {
         const raw = JSON.parse(decodeURIComponent(atob(pPayload)));
         document.getElementById('formCard').style.display = 'none';
-        renderPassportCard(raw);
+        
+        // GIẢI MÃ ĐẦY ĐỦ CÁC THÔNG SỐ BAO GỒM TRANG PHỤC VĐV (vp)
+        renderPassportCard({
+          r: raw.r,
+          t: raw.t,
+          e: raw.e,
+          k: raw.k,
+          c: raw.c,
+          id: raw.id,
+          vp: raw.vp,
+          s: raw.s
+        });
       } catch (e) {
         console.error("Lỗi đọc dữ liệu QR:", e);
       }
