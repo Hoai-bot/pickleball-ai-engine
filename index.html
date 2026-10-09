@@ -113,11 +113,7 @@
       outline: none;
     }
 
-    .badge-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .badge-group { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .badge-opt {
       padding: 7px 12px;
@@ -142,15 +138,9 @@
       box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
     }
 
-    .badge-custom-btn {
-      border: 1px dashed var(--accent-gold);
-      color: var(--accent-gold);
-    }
+    .badge-custom-btn { border: 1px dashed var(--accent-gold); color: var(--accent-gold); }
 
-    .custom-input-box {
-      display: none;
-      margin-top: 8px;
-    }
+    .custom-input-box { display: none; margin-top: 8px; }
 
     .custom-input-box input {
       background: #0f172a;
@@ -620,7 +610,6 @@
         `${prof.court_position} | ${prof.shirt_color} | ${prof.shoe_color} | ${prof.headwear}`;
     }
 
-    // 1. RÚT GỌN CHUỖI N B ĐỂ MÃ QR RẤT THƯA VÀ DỄ QUÉT
     const compactData = {
       r: ratingVal,
       t: tierVal,
@@ -631,16 +620,15 @@
       s: (resData.qr_certified_data ? resData.qr_certified_data.signature : resData.s) || ''
     };
 
-    // 2. MÃ HÓA BASE64 CHUỖI RÚT GỌN
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(compactData)));
 
+    // TỰ ĐỘNG LẤY LINK DOMAIN GITHUB PAGES CHÍNH CHỦ
     const baseUrl = window.location.protocol.startsWith('http') 
       ? `${window.location.origin}${window.location.pathname}` 
-      : `${API_BASE_URL}/`;
+      : 'https://hoai-bot.github.io/pickleball-ai-engine/';
 
     const passportWebUrl = `${baseUrl}?p=${encodedPayload}`;
 
-    // 3. KÍCH THƯỚC QR LỚN 250x250 SẮC NÉT
     document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(passportWebUrl)}`;
   }
 
@@ -665,7 +653,6 @@
     }, 2000);
   }
 
-  // TỰ ĐỘNG GIẢI MÃ PAYLOAD RÚT GỌN KHI QUÉT TỪ ĐIỆN THOẠI
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
