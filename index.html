@@ -613,10 +613,15 @@
         `${prof.court_position} | ${prof.shirt_color} | ${prof.shoe_color} | ${prof.headwear}`;
     }
 
-    // ✅ NÂNG CẤP BẢO MẬT: MÃ HÓA TOÀN BỘ KẾT QUẢ VÀO MÃ QR DẠNG URL BASE64
-    // Điện thoại quét vào sẽ tự hiển thị kết quả ngay mà KHÔNG CẦN gọi lại server
+    // MÃ HÓA PAYLOAD SANG BASE64
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(resData)));
-    const passportWebUrl = `${window.location.origin}${window.location.pathname}?p=${encodedPayload}`;
+
+    // XÁC ĐỊNH BASE URL PHÙ HỢP CẢ KHI CHẠY TRỰC TIẾP TỆP FILE LOCAL
+    const baseUrl = window.location.protocol.startsWith('http') 
+      ? `${window.location.origin}${window.location.pathname}` 
+      : `${API_BASE_URL}/`;
+
+    const passportWebUrl = `${baseUrl}?p=${encodedPayload}`;
     document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(passportWebUrl)}`;
   }
 
@@ -641,14 +646,14 @@
     }, 2000);
   }
 
-  // ✅ ĐỌC MÃ QR ĐÃ MÃ HÓA ĐẶC BIỆT KHI MỞ TRÊN ĐIỆN THOẠI
+  // TỰ ĐỘNG GIẢI MÃ PAYLOAD KHI MỞ QUA QR SCAN
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
     if (pPayload) {
       try {
         const decodedData = JSON.parse(decodeURIComponent(atob(pPayload)));
-        document.getElementById('formCard').style.display = 'none'; // Ẩn form khi quét QR
+        document.getElementById('formCard').style.display = 'none';
         renderPassportCard(decodedData);
       } catch (e) {
         console.error("Lỗi đọc dữ liệu QR:", e);
