@@ -211,6 +211,16 @@
       border-radius: 12px;
     }
 
+    .dupr-badge {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #000;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 8px;
+      margin-left: 6px;
+    }
+
     .score-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -314,7 +324,7 @@
           <div class="badge-group" id="group-pants">
             <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
-            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xám')" data-vi="Quần Xám" data-en="Grey Shorts">Quần Xám</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Quần Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-pants">
@@ -325,8 +335,8 @@
         <div class="form-group">
           <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
           <div class="badge-group" id="group-shoes">
-            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
-            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
+            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ/Cam')" data-vi="Giày Đỏ/Cam" data-en="Red/Orange Shoes">Giày Đỏ/Cam</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Giày Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Giày Khác</span>
           </div>
@@ -397,8 +407,11 @@
     <div class="passport-card" id="passportCard">
       <div class="passport-header">
         <div>
-          <span class="badge-certified">✔ OFFICIAL AI CERTIFIED</span>
-          <h3 style="margin:6px 0 0 0; color:var(--accent-gold);" id="resRating">3.85 PVNA</h3>
+          <span class="badge-certified" data-vi="✔ XÁC NHẬN AI BỞI CƠ QUAN" data-en="✔ OFFICIAL AI CERTIFIED">✔ XÁC NHẬN AI BỞI CƠ QUAN</span>
+          <div style="display:flex; align-items:center; margin-top:6px;">
+            <h3 style="margin:0; color:var(--accent-gold);" id="resRating">4.24 PVNA</h3>
+            <span class="dupr-badge" id="resDupr">DUPR 4.20</span>
+          </div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:11px; color:var(--text-muted);" data-vi="CẤP ĐỘ GIẢI" data-en="TIER">CẤP ĐỘ GIẢI</div>
@@ -408,22 +421,22 @@
 
       <div class="score-grid">
         <div class="score-item">
-          <div class="score-value" id="resElbow">117.5°</div>
+          <div class="score-value" id="resElbow">118.5°</div>
           <div class="score-label" data-vi="GÓC VUNG TAY" data-en="ELBOW ANGLE">GÓC VUNG TAY</div>
         </div>
         <div class="score-item">
-          <div class="score-value" id="resKnee">133.0°</div>
+          <div class="score-value" id="resKnee">134.2°</div>
           <div class="score-label" data-vi="GÓC CHÙNG GỐI" data-en="KNEE ANGLE">GÓC CHÙNG GỐI</div>
         </div>
         <div class="score-item">
-          <div class="score-value" id="resComposite">88.5/100</div>
+          <div class="score-value" id="resComposite">83.4/100</div>
           <div class="score-label" data-vi="ĐIỂM TỔNG HỢP" data-en="OVERALL SCORE">ĐIỂM TỔNG HỢP</div>
         </div>
       </div>
 
       <div class="target-box">
         <strong style="color:var(--accent-gold);" data-vi="🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:" data-en="🎯 AI LOCATED TARGET:">🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:</strong>
-        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Quần Đen | Giày Đen | Mũ Lưỡi Trai Trắng</div>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng</div>
       </div>
 
       <div class="qr-section">
@@ -447,7 +460,7 @@
     court_pos: 'near_right',
     shirt: 'Áo Trắng',
     pants: 'Quần Đen',
-    shoes: 'Giày Đen',
+    shoes: 'Giày Trắng',
     headwear: 'Mũ Lưỡi Trai Trắng',
     body: 'athletic'
   };
@@ -459,6 +472,8 @@
     headwear: false,
     body: false
   };
+
+  let lastPassportData = null;
 
   function selectBadge(groupId, el, val) {
     document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
@@ -504,6 +519,17 @@
         else { el.innerText = text; }
       }
     });
+
+    if (lastPassportData) {
+      renderPassportCard(lastPassportData);
+    }
+  }
+
+  // TỰ ĐỘNG QUY ĐỔI ĐIỂM DUPR TỪ ĐIỂM PVNA
+  function calculateDUPR(pvnaString) {
+    const numericPVNA = parseFloat(pvnaString) || 3.85;
+    const duprScore = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
+    return `DUPR ${duprScore.toFixed(2)}`;
   }
 
   async function startAIAnalysis() {
@@ -586,18 +612,19 @@
   }
 
   function renderPassportCard(resData) {
+    lastPassportData = resData;
     document.getElementById('statusBox').style.display = 'none';
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('passportCard').style.display = 'block';
 
     const ratingVal = resData.calculated_rating || resData.r || '3.85 PVNA';
+    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal);
     const tierVal = resData.tournament_tier || resData.t || 'Intermediate';
     const elbowVal = resData.avg_elbow_angle || resData.e || '117.5°';
     const kneeVal = resData.avg_knee_angle || resData.k || '133.0°';
     const compositeVal = resData.overall_composite_score || resData.c || '88.5/100';
     const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
 
-    // XỬ LÝ TRUYỀN DỮ LIỆU TRANG PHỤC VĐV DỰA TRÊN PAYLOAD
     let targetText = '';
     if (resData.player_visual_profile) {
       const prof = resData.player_visual_profile;
@@ -611,21 +638,23 @@
     }
 
     document.getElementById('resRating').innerText = ratingVal;
+    document.getElementById('resDupr').innerText = duprVal;
     document.getElementById('resTier').innerText = tierVal;
     document.getElementById('resElbow').innerText = elbowVal;
     document.getElementById('resKnee').innerText = kneeVal;
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    // NÂNG CẤP: ĐÓNG GÓI THÊM THUỘC TÍNH 'vp' (VISUAL PROFILE) VÀO PAYLOAD RÚT GỌN
     const compactData = {
       r: ratingVal,
+      d: duprVal,
       t: tierVal,
       e: elbowVal,
       k: kneeVal,
       c: compositeVal,
       id: playerIdVal,
       vp: targetText || document.getElementById('resTargetIdentity').innerText,
+      l: currentLang,
       s: (resData.qr_certified_data ? resData.qr_certified_data.signature : resData.s) || ''
     };
 
@@ -667,11 +696,14 @@
     if (pPayload) {
       try {
         const raw = JSON.parse(decodeURIComponent(atob(pPayload)));
+        if (raw.l && raw.l !== currentLang) {
+          toggleLanguage();
+        }
         document.getElementById('formCard').style.display = 'none';
         
-        // GIẢI MÃ ĐẦY ĐỦ CÁC THÔNG SỐ BAO GỒM TRANG PHỤC VĐV (vp)
         renderPassportCard({
           r: raw.r,
+          d: raw.d,
           t: raw.t,
           e: raw.e,
           k: raw.k,
