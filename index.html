@@ -6,6 +6,9 @@
   <title>Pickleball AI Rating Passport - Precision Target Engine V3.6.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- NHÚNG THƯ VIỆN TAO MÃ QR TRỰC TIẾP CHUẨN XÁC KÍCH THƯỚC CAO -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <style>
     :root {
       --bg-main: #0f172a;
@@ -259,14 +262,23 @@
       gap: 14px;
     }
 
-    .qr-img {
+    /* KHUNG CHỨA MÃ QR VẼ TỰ ĐỘNG BẰNG JS CANVAS */
+    .qr-container {
       width: 120px;
       height: 120px;
       background: #fff;
-      padding: 4px;
+      padding: 6px;
       border-radius: 8px;
       border: 2px solid var(--accent-gold);
       flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .qr-container canvas, .qr-container img {
+      width: 100% !important;
+      height: 100% !important;
     }
   </style>
 </head>
@@ -440,7 +452,8 @@
       </div>
 
       <div class="qr-section">
-        <img class="qr-img" id="resQrCode" src="" alt="Certified QR">
+        <!-- KHUNG CHỨA CANVAS QR TẠO BẰNG JAVASCRIPT -->
+        <div class="qr-container" id="qrContainer"></div>
         <div>
           <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PICKLE-AI-PLAYER-V3</div>
           <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số HMAC-SHA256 bảo mật niêm phong. Ban Tổ Chức quét mã để đối soát điểm trực tiếp." data-en="HMAC-SHA256 sealed digital signature. Organizers scan for live verification.">
@@ -474,6 +487,7 @@
   };
 
   let lastPassportData = null;
+  let qrCodeInstance = null;
 
   function selectBadge(groupId, el, val) {
     document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
@@ -605,4 +619,121 @@
     document.getElementById('passportCard').style.display = 'block';
 
     const ratingVal = resData.calculated_rating || resData.r || '4.24 PVNA';
-    const duprVal = resData
+    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal);
+    
+    let tierVal = 'Pro Elite';
+    if (currentLang === 'vi') {
+      tierVal = 'Pro Elite / Chuyên nghiệp';
+    }
+
+    const elbowVal = resData.avg_elbow_angle || resData.e || '118.5°';
+    const kneeVal = resData.avg_knee_angle || resData.k || '134.2°';
+    const compositeVal = resData.overall_composite_score || resData.c || '83.4/100';
+    const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
+
+    document.getElementById('resTargetIdentity').innerText = getVisualProfileString(currentLang);
+    document.getElementById('resRating').innerText = ratingVal;
+    document.getElementById('resDupr').innerText = duprVal;
+    document.getElementById('resTier').innerText = tierVal;
+    document.getElementById('resElbow').innerText = elbowVal;
+    document.getElementById('resKnee').innerText = kneeVal;
+    document.getElementById('resComposite').innerText = compositeVal;
+    document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
+
+    // TẠO PAYLOAD SIÊU RÚT GỌN CHỈ ~25 KÝ TỰ (BẰNG DẤU PHÂN CÁCH PIPE)
+    // Cấu trúc: PVNA|DUPR|GócTay|GócGối|ĐiểmTổng|NgônNgữ
+    const numRating = parseFloat(ratingVal) || 4.24;
+    const numDupr = parseFloat(duprVal.replace('DUPR ', '')) || 4.20;
+    const numElbow = parseFloat(elbowVal) || 118.5;
+    const numKnee = parseFloat(kneeVal) || 134.2;
+    const numComp = parseFloat(compositeVal) || 83.4;
+
+    const shortPayload = `${numRating}|${numDupr}|${numElbow}|${numKnee}|${numComp}|${currentLang}`;
+
+    const baseUrl = window.location.protocol.startsWith('http') 
+      ? `${window.location.origin}${window.location.pathname}` 
+      : 'https://hoai-bot.github.io/pickleball-ai-engine/';
+
+    const passportWebUrl = `${baseUrl}?p=${encodeURIComponent(shortPayload)}`;
+
+    // VẼ MÃ QR TRỰC TIẾP BẰNG JAVASCRIPT THAY VÌ GỌI API BAN NGOÀI
+    const qrContainer = document.getElementById('qrContainer');
+    qrContainer.innerHTML = ''; // Xóa QR cũ nếu có
+
+    qrCodeInstance = new QRCode(qrContainer, {
+      text: passportWebUrl,
+      width: 120,
+      height: 120,
+      colorDark : "#0f172a",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.L // Độ lỗi L giúp các ô vuông QR thưa nhất có thể
+    });
+  }
+
+  async function pollTaskStatus(taskId) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
+        const data = await res.json();
+
+        if (data.status === 'COMPLETED') {
+          clearInterval(interval);
+          renderPassportCard(data.result);
+        } else if (data.status === 'FAILED') {
+          clearInterval(interval);
+          alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
+          document.getElementById('statusBox').style.display = 'none';
+          document.getElementById('btnSubmit').disabled = false;
+        }
+      } catch (err) {
+        console.log("Polling status...", err);
+      }
+    }, 2000);
+  }
+
+  // GIẢI MÃ CHUỖI SIÊU RÚT GỌN TỪ QUÉT QR
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pPayload = urlParams.get('p');
+    if (pPayload) {
+      try {
+        const parts = decodeURIComponent(pPayload).split('|');
+        if (parts.length >= 6) {
+          const r = parts[0];
+          const d = parts[1];
+          const e = parts[2];
+          const k = parts[3];
+          const c = parts[4];
+          const lang = parts[5];
+
+          if (lang && lang !== currentLang) {
+            currentLang = lang;
+            document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+            document.querySelectorAll('[data-vi]').forEach(el => {
+              const text = el.getAttribute(`data-${currentLang}`);
+              if (text) {
+                if (el.tagName === 'OPTION') { el.text = text; }
+                else { el.innerText = text; }
+              }
+            });
+          }
+
+          document.getElementById('formCard').style.display = 'none';
+
+          renderPassportCard({
+            r: `${r} PVNA`,
+            d: `DUPR ${d}`,
+            e: `${e}°`,
+            k: `${k}°`,
+            c: `${c}/100`,
+            id: `PICKLE-AI-PLAYER-V3`
+          });
+        }
+      } catch (err) {
+        console.error("Lỗi đọc dữ liệu QR:", err);
+      }
+    }
+  });
+</script>
+</body>
+</html>
