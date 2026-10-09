@@ -365,7 +365,7 @@
           </div>
         </div>
 
-        <!-- 7. THỂ HÌNH / NGOẠI HÌNH -->
+        <!-- 7. THỂ HÌNH / NGOẠI HÌNH (CÓ NÚT TỰ NHẬP KHÁC) -->
         <div class="form-group">
           <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
           <div class="badge-group" id="group-body">
@@ -626,7 +626,7 @@
           document.getElementById('resComposite').innerText = resData.overall_composite_score;
           document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
 
-          // TẠO MÃ QR DẠNG URL CHUẨN XÁC THỰC
+          // QR DẠNG URL CHUẨN XÁC THỰC
           const verifyUrl = `${API_BASE_URL}/api/task-status/${taskId}`;
           document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
 
