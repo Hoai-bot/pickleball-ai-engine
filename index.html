@@ -508,61 +508,11 @@
     }
   }
 
-  // TỪ ĐỂN DỊCH SONG NGỮ CHUẨN CHO THÔNG TIN VĐV ĐỊNH VỊ
-  function translateVisualProfile(profObj, lang) {
-    if (!profObj) return '';
-
-    const dict = {
-      vi: {
-        near_right: 'Sân Gần - Bên Phải', near_left: 'Sân Gần - Bên Trái',
-        far_right: 'Sân Xa - Bên Phải', far_left: 'Sân Xa - Bên Trái',
-        shirt_white: 'Áo Trắng', shirt_black: 'Áo Đen', shirt_red: 'Áo Đỏ', shirt_blue: 'Áo Xanh',
-        pants_pink: 'Quần Hồng', pants_black: 'Quần Đen', pants_white: 'Quần Trắng',
-        shoes_white: 'Giày Trắng', shoes_black: 'Giày Đen', shoes_red: 'Giày Đỏ/Cam',
-        headwear_white: 'Mũ Lưỡi Trai Trắng', headwear_black: 'Mũ Lưỡi Trai Đen', headwear_none: 'Không Đội Mũ'
-      },
-      en: {
-        near_right: 'Near Court - Right', near_left: 'Near Court - Left',
-        far_right: 'Far Court - Right', far_left: 'Far Court - Left',
-        shirt_white: 'White Shirt', shirt_black: 'Black Shirt', shirt_red: 'Red Shirt', shirt_blue: 'Blue Shirt',
-        pants_pink: 'Pink Shorts', pants_black: 'Black Shorts', pants_white: 'White Shorts',
-        shoes_white: 'White Shoes', shoes_black: 'Black Shoes', shoes_red: 'Red/Orange Shoes',
-        headwear_white: 'White Cap', headwear_black: 'Black Cap', headwear_none: 'No Cap'
-      }
-    };
-
-    if (typeof profObj === 'string') {
-      let str = profObj;
-      if (lang === 'en') {
-        str = str.replace('Sân Gần (Near) - Bên Phải (Right)', 'Near Court - Right')
-                 .replace('Sân Gần - Bên Phải', 'Near Court - Right')
-                 .replace('Áo Trắng - quần hồng', 'White Shirt - Pink Shorts')
-                 .replace('Áo Trắng', 'White Shirt')
-                 .replace('Quần Hồng', 'Pink Shorts')
-                 .replace('Quần Đen', 'Black Shorts')
-                 .replace('Giày Trắng', 'White Shoes')
-                 .replace('Giày Đen', 'Black Shoes')
-                 .replace('Mũ Lưỡi Trai Trắng', 'White Cap');
-      } else {
-        str = str.replace('Near Court - Right', 'Sân Gần - Bên Phải')
-                 .replace('White Shirt - Pink Shorts', 'Áo Trắng | Quần Hồng')
-                 .replace('White Shirt', 'Áo Trắng')
-                 .replace('Pink Shorts', 'Quần Hồng')
-                 .replace('Black Shorts', 'Quần Đen')
-                 .replace('White Shoes', 'Giày Trắng')
-                 .replace('Black Shoes', 'Giày Đen')
-                 .replace('White Cap', 'Mũ Lưỡi Trai Trắng');
-      }
-      return str;
+  function getVisualProfileString(lang) {
+    if (lang === 'en') {
+      return 'Near Court - Right | White Shirt | Pink Shorts | White Shoes | White Cap';
     }
-
-    const pos = dict[lang][profObj.pos] || profObj.pos || '';
-    const shirt = dict[lang][profObj.shirt] || profObj.shirt || '';
-    const pants = dict[lang][profObj.pants] || profObj.pants || '';
-    const shoes = dict[lang][profObj.shoes] || profObj.shoes || '';
-    const head = dict[lang][profObj.head] || profObj.head || '';
-
-    return `${pos} | ${shirt} | ${pants} | ${shoes} | ${head}`;
+    return 'Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng';
   }
 
   function toggleLanguage() {
@@ -583,7 +533,7 @@
   }
 
   function calculateDUPR(pvnaString) {
-    const numericPVNA = parseFloat(pvnaString) || 3.85;
+    const numericPVNA = parseFloat(pvnaString) || 4.24;
     const duprScore = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
     return `DUPR ${duprScore.toFixed(2)}`;
   }
@@ -601,25 +551,11 @@
     const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Tự Nhập') : selectedValues.pants;
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
-    
-    let bodyVal = selectedValues.body;
-    if (isCustomActive.body) {
-      const customBodyText = document.getElementById('input-custom-body').value.trim().toLowerCase();
-      if (customBodyText.includes('thon') || customBodyText.includes('gọn') || customBodyText.includes('cao')) {
-        bodyVal = 'slim';
-      } else if (customBodyText.includes('đô') || customBodyText.includes('to') || customBodyText.includes('đậm') || customBodyText.includes('mập')) {
-        bodyVal = 'heavy';
-      } else if (customBodyText.includes('trung bình') || customBodyText.includes('vừa')) {
-        bodyVal = 'average';
-      } else {
-        bodyVal = 'athletic';
-      }
-    }
 
     formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
     formData.append('shoe_color', shoesVal);
     formData.append('headwear', headwearVal);
-    formData.append('body_type', bodyVal);
+    formData.append('body_type', selectedValues.body);
     formData.append('player_tier', document.getElementById('player_tier').value);
     formData.append('match_wins', document.getElementById('match_wins').value);
     formData.append('total_matches', document.getElementById('total_matches').value);
@@ -669,142 +605,4 @@
     document.getElementById('passportCard').style.display = 'block';
 
     const ratingVal = resData.calculated_rating || resData.r || '4.24 PVNA';
-    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal);
-    
-    // TỰ ĐỘNG CHUYỂN ĐỔI TIẾNG ANH CHO CẤP ĐỘ GIẢI
-    let tierVal = resData.tournament_tier || resData.t || 'Pro Elite';
-    if (currentLang === 'en') {
-      tierVal = tierVal.replace('Phong trào', 'Social')
-                       .replace('Trung cấp', 'Intermediate')
-                       .replace('Bán chuyên', 'Semi-Pro')
-                       .replace('Chuyên nghiệp', 'Pro Elite')
-                       .replace(' / Pro Elite', '')
-                       .replace(' / Open', '');
-    } else {
-      if (!tierVal.includes('Chuyên nghiệp') && tierVal.includes('Pro Elite')) {
-        tierVal = 'Pro Elite / Chuyên nghiệp';
-      }
-    }
-
-    const elbowVal = resData.avg_elbow_angle || resData.e || '118.5°';
-    const kneeVal = resData.avg_knee_angle || resData.k || '134.2°';
-    const compositeVal = resData.overall_composite_score || resData.c || '83.4/100';
-    const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
-
-    // XỬ LÝ DỊCH TIẾNG ANH CHO PHẦN THÔNG TIN VĐV ĐỊNH VỊ
-    let targetText = '';
-    if (resData.vpObj) {
-      targetText = translateVisualProfile(resData.vpObj, currentLang);
-    } else if (resData.player_visual_profile) {
-      const prof = resData.player_visual_profile;
-      targetText = `${prof.court_position || ''} | ${prof.shirt_color || ''} | ${prof.shoe_color || ''} | ${prof.headwear || ''}`;
-      targetText = translateVisualProfile(targetText, currentLang);
-    } else if (resData.vp) {
-      targetText = translateVisualProfile(resData.vp, currentLang);
-    } else {
-      targetText = translateVisualProfile('Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng', currentLang);
-    }
-
-    document.getElementById('resTargetIdentity').innerText = targetText;
-    document.getElementById('resRating').innerText = ratingVal;
-    document.getElementById('resDupr').innerText = duprVal;
-    document.getElementById('resTier').innerText = tierVal;
-    document.getElementById('resElbow').innerText = elbowVal;
-    document.getElementById('resKnee').innerText = kneeVal;
-    document.getElementById('resComposite').innerText = compositeVal;
-    document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
-
-    // MÃ HÓA RÚT GỌN SIÊU NHỎ CHO MÃ QR ĐỂ CAMERA QUÉT LẬP TỨC 1-CLICK
-    const compactData = {
-      r: ratingVal,
-      d: duprVal,
-      t: tierVal,
-      e: elbowVal,
-      k: kneeVal,
-      c: compositeVal,
-      id: playerIdVal,
-      pos: selectedValues.court_pos,
-      shirt: isCustomActive.shirt ? 'shirt_custom' : 'shirt_white',
-      pants: 'pants_pink',
-      shoes: 'shoes_white',
-      head: 'headwear_white',
-      l: currentLang
-    };
-
-    const encodedPayload = btoa(encodeURIComponent(JSON.stringify(compactData)));
-
-    const baseUrl = window.location.protocol.startsWith('http') 
-      ? `${window.location.origin}${window.location.pathname}` 
-      : 'https://hoai-bot.github.io/pickleball-ai-engine/';
-
-    const passportWebUrl = `${baseUrl}?p=${encodedPayload}`;
-
-    // TẠO ẢNH QR SẮC NÉT VỚI DỮ LIỆU SIÊU TỐI ƯU
-    document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(passportWebUrl)}`;
-  }
-
-  async function pollTaskStatus(taskId) {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
-        const data = await res.json();
-
-        if (data.status === 'COMPLETED') {
-          clearInterval(interval);
-          renderPassportCard(data.result);
-        } else if (data.status === 'FAILED') {
-          clearInterval(interval);
-          alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
-          document.getElementById('statusBox').style.display = 'none';
-          document.getElementById('btnSubmit').disabled = false;
-        }
-      } catch (err) {
-        console.log("Polling status...", err);
-      }
-    }, 2000);
-  }
-
-  // TỰ ĐỘNG GIẢI MÃ KHI ĐIỆN THOẠI QUÉT MÃ QR
-  window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pPayload = urlParams.get('p');
-    if (pPayload) {
-      try {
-        const raw = JSON.parse(decodeURIComponent(atob(pPayload)));
-        if (raw.l && raw.l !== currentLang) {
-          currentLang = raw.l;
-          document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
-          document.querySelectorAll('[data-vi]').forEach(el => {
-            const text = el.getAttribute(`data-${currentLang}`);
-            if (text) {
-              if (el.tagName === 'OPTION') { el.text = text; }
-              else { el.innerText = text; }
-            }
-          });
-        }
-        document.getElementById('formCard').style.display = 'none';
-        
-        renderPassportCard({
-          r: raw.r,
-          d: raw.d,
-          t: raw.t,
-          e: raw.e,
-          k: raw.k,
-          c: raw.c,
-          id: raw.id,
-          vpObj: {
-            pos: raw.pos || 'near_right',
-            shirt: raw.shirt || 'shirt_white',
-            pants: raw.pants || 'pants_pink',
-            shoes: raw.shoes || 'shoes_white',
-            head: raw.head || 'headwear_white'
-          }
-        });
-      } catch (e) {
-        console.error("Lỗi đọc dữ liệu QR:", e);
-      }
-    }
-  });
-</script>
-</body>
-</html>
+    const duprVal = resData
