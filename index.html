@@ -116,7 +116,6 @@
       outline: none;
     }
 
-    /* CHỌN CHẾ ĐỘ NHẬP VIDEO */
     .input-mode-tabs {
       display: flex;
       gap: 8px;
@@ -340,7 +339,6 @@
       </div>
 
       <form id="rating-form">
-        <!-- CHỌN CHẾ ĐỘ DÁN LINK / UPLOAD FILE -->
         <div class="form-group">
           <label data-vi="1. Phương Thức Tải Video Trận Đấu:" data-en="1. Match Video Input Method:">1. Phương Thức Tải Video Trận Đấu:</label>
           <div class="input-mode-tabs">
@@ -348,12 +346,10 @@
             <div class="tab-btn" id="tabFile" onclick="switchVideoMode('file')" data-vi="📁 Tải Video Từ Điện Thoại / Máy Tính" data-en="📁 Upload Local Video File">📁 Tải Video Từ Máy</div>
           </div>
 
-          <!-- O 1: LINK URL (YouTube/Drive/Facebook) -->
           <div id="videoUrlContainer">
             <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA" placeholder="Dán đường dẫn video (YouTube / Facebook / Drive)...">
           </div>
 
-          <!-- O 2: CHỌN FILE VIDEO TỰ ĐIỆN THOẠI/MÁY TÍNH -->
           <div id="videoFileContainer" style="display:none;">
             <div class="file-input-wrapper" onclick="document.getElementById('video_file').click()">
               <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--accent-blue); margin-bottom:6px;"></i>
@@ -393,9 +389,9 @@
         <div class="form-group">
           <label data-vi="4. Màu Quần / Váy Thi Đấu:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy Thi Đấu:</label>
           <div class="badge-group" id="group-pants">
-            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
-            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
+            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Quần Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-pants">
@@ -406,8 +402,8 @@
         <div class="form-group">
           <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
           <div class="badge-group" id="group-shoes">
-            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
-            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
+            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
             <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ/Cam')" data-vi="Giày Đỏ/Cam" data-en="Red/Orange Shoes">Giày Đỏ/Cam</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Giày Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Giày Khác</span>
           </div>
@@ -419,9 +415,9 @@
         <div class="form-group">
           <label data-vi="6. Mũ / Nón / Phụ Kiện Đầu:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Phụ Kiện Đầu:</label>
           <div class="badge-group" id="group-headwear">
-            <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Trắng" data-en="White Cap">Mũ Trắng</span>
+            <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Trắng" data-en="White Cap">Mũ Trắng</span>
             <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Đen')" data-vi="Mũ Đen" data-en="Black Cap">Mũ Đen</span>
-            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
             <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-headwear', this)" data-vi="✏️ + Tự Nhập Nón Khác" data-en="✏️ + Custom Cap">✏️ + Tự Nhập Nón Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-headwear">
@@ -448,16 +444,16 @@
             <label data-vi="Phân Hạng Đăng Ký:" data-en="Register Tier:">Phân Hạng Đăng Ký:</label>
             <select id="player_tier" class="form-control">
               <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
-              <option value="intermediate" data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
+              <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
               <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
-              <option value="pro" selected data-vi="Chuyên nghiệp (Pro Elite)" data-en="Pro Elite">Chuyên nghiệp (Pro Elite)</option>
+              <option value="pro" data-vi="Chuyên nghiệp (Pro Elite)" data-en="Pro Elite">Chuyên nghiệp (Pro Elite)</option>
             </select>
           </div>
           <div>
             <label data-vi="Tỷ Lệ Thắng (Wins/Total):" data-en="Win Record (Wins/Total):">Tỷ Lệ Thắng (Wins/Total):</label>
             <div style="display:flex; gap:6px;">
-              <input type="number" id="match_wins" class="form-control" value="87" placeholder="Wins">
-              <input type="number" id="total_matches" class="form-control" value="100" placeholder="Total">
+              <input type="number" id="match_wins" class="form-control" value="12" placeholder="Wins">
+              <input type="number" id="total_matches" class="form-control" value="15" placeholder="Total">
             </div>
           </div>
         </div>
@@ -480,34 +476,34 @@
         <div>
           <span class="badge-certified" data-vi="✔ OFFICIAL AI CERTIFIED" data-en="✔ OFFICIAL AI CERTIFIED">✔ OFFICIAL AI CERTIFIED</span>
           <div style="display:flex; align-items:center; margin-top:6px;">
-            <h3 style="margin:0; color:var(--accent-gold);" id="resRating">4.24 PVNA</h3>
-            <span class="dupr-badge" id="resDupr">DUPR 7.25</span>
+            <h3 style="margin:0; color:var(--accent-gold);" id="resRating">3.85 PVNA</h3>
+            <span class="dupr-badge" id="resDupr">DUPR 3.81</span>
           </div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:11px; color:var(--text-muted);" data-vi="CẤP ĐỘ GIẢI" data-en="TIER">CẤP ĐỘ GIẢI</div>
-          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Pro Elite</div>
+          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Open</div>
         </div>
       </div>
 
       <div class="score-grid">
         <div class="score-item">
-          <div class="score-value" id="resElbow">118.5°</div>
+          <div class="score-value" id="resElbow">117.5°</div>
           <div class="score-label" data-vi="GÓC VUNG TAY" data-en="ELBOW ANGLE">GÓC VUNG TAY</div>
         </div>
         <div class="score-item">
-          <div class="score-value" id="resKnee">134.2°</div>
+          <div class="score-value" id="resKnee">133.0°</div>
           <div class="score-label" data-vi="GÓC CHÙNG GỐI" data-en="KNEE ANGLE">GÓC CHÙNG GỐI</div>
         </div>
         <div class="score-item">
-          <div class="score-value" id="resComposite">83.4/100</div>
+          <div class="score-value" id="resComposite">88.5/100</div>
           <div class="score-label" data-vi="ĐIỂM TỔNG HỢP" data-en="OVERALL SCORE">ĐIỂM TỔNG HỢP</div>
         </div>
       </div>
 
       <div class="target-box">
         <strong style="color:var(--accent-gold);" data-vi="🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:" data-en="🎯 AI LOCATED TARGET:">🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:</strong>
-        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng</div>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Đen | Quần Đen | Giày Đen | Không Đội Mũ</div>
       </div>
 
       <div class="qr-section">
@@ -526,14 +522,14 @@
 <script>
   const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
   let currentLang = 'vi';
-  let activeVideoMode = 'url'; // 'url' hoac 'file'
+  let activeVideoMode = 'url';
 
   const selectedValues = {
     court_pos: 'near_right',
     shirt: 'Áo Trắng',
-    pants: 'Quần Hồng',
-    shoes: 'Giày Trắng',
-    headwear: 'Mũ Lưỡi Trai Trắng',
+    pants: 'Quần Đen',
+    shoes: 'Giày Đen',
+    headwear: 'Không Đội Mũ',
     body: 'athletic'
   };
 
@@ -603,11 +599,45 @@
     }
   }
 
-  function getVisualProfileString(lang) {
+  // HÀM LẤY CHUỖI NÓNG TỪ PHÔI LỰA CHỌN CỦA FORM
+  function getSelectedVisualProfile(lang) {
+    const shirtVal = isCustomActive.shirt ? (document.getElementById('input-custom-shirt').value.trim() || 'Áo Khác') : selectedValues.shirt;
+    const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Khác') : selectedValues.pants;
+    const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Khác') : selectedValues.shoes;
+    const headVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Phụ Kiện Khác') : selectedValues.headwear;
+
+    const posDict = {
+      'near_right': { vi: 'Sân Gần - Bên Phải', en: 'Near Court - Right' },
+      'near_left': { vi: 'Sân Gần - Bên Trái', en: 'Near Court - Left' },
+      'far_right': { vi: 'Sân Xa - Bên Phải', en: 'Far Court - Right' },
+      'far_left': { vi: 'Sân Xa - Bên Trái', en: 'Far Court - Left' }
+    };
+
+    const posStr = posDict[selectedValues.court_pos] ? posDict[selectedValues.court_pos][lang] : selectedValues.court_pos;
+
     if (lang === 'en') {
-      return 'Near Court - Right | White Shirt | Pink Shorts | White Shoes | White Cap';
+      let eShirt = shirtVal.replace('Áo Trắng', 'White Shirt').replace('Áo Đen', 'Black Shirt').replace('Áo Đỏ', 'Red Shirt').replace('Áo Xanh', 'Blue Shirt');
+      let ePants = pantsVal.replace('Quần Đen', 'Black Shorts').replace('Quần Trắng', 'White Shorts').replace('Quần Hồng', 'Pink Shorts');
+      let eShoes = shoesVal.replace('Giày Đen', 'Black Shoes').replace('Giày Trắng', 'White Shoes').replace('Giày Đỏ/Cam', 'Red/Orange Shoes');
+      let eHead = headVal.replace('Không Đội Mũ', 'No Cap').replace('Mũ Lưỡi Trai Trắng', 'White Cap').replace('Mũ Lưỡi Trai Đen', 'Black Cap');
+      return `${posStr} | ${eShirt} | ${ePants} | ${eShoes} | ${eHead}`;
     }
-    return 'Sân Gần - Bên Phải | Áo Trắng | Quần Hồng | Giày Trắng | Mũ Lưỡi Trai Trắng';
+
+    return `${posStr} | ${shirtVal} | ${pantsVal} | ${shoesVal} | ${headVal}`;
+  }
+
+  // LẤY TÊN PHÂN HẠNG CẤP ĐỘ THEO NGÔN NGỮ
+  function getTierLabel(tierKey, lang) {
+    const tierMap = {
+      'social': { vi: 'Phong trào (Social)', en: 'Social' },
+      'intermediate': { vi: 'Trung cấp (Open)', en: 'Open' },
+      'semi_pro': { vi: 'Bán chuyên', en: 'Semi-Pro' },
+      'pro': { vi: 'Chuyên nghiệp (Pro Elite)', en: 'Pro Elite' }
+    };
+    if (tierMap[tierKey]) {
+      return tierMap[tierKey][lang];
+    }
+    return tierKey;
   }
 
   function toggleLanguage() {
@@ -628,7 +658,7 @@
   }
 
   function calculateDUPR(pvnaString, tierVal) {
-    const numericPVNA = parseFloat(pvnaString) || 4.24;
+    const numericPVNA = parseFloat(pvnaString) || 3.85;
     const currentTier = tierVal || document.getElementById('player_tier').value;
 
     if (currentTier === 'pro' || currentTier === 'Pro Elite' || currentTier === 'Pro Elite / Chuyên nghiệp') {
@@ -644,7 +674,6 @@
     const formData = new FormData();
     formData.append('lang', currentLang);
 
-    // 1. XỬ LÝ TRUYỀN DỮ LIỆU TÁCH BIỆT CHUẨN FASTAPI
     if (activeVideoMode === 'file') {
       const fileInput = document.getElementById('video_file');
       if (!fileInput.files || fileInput.files.length === 0) {
@@ -661,7 +690,6 @@
       formData.append('video_url', urlValue);
     }
 
-    // 2. TRUYỀN THÔNG SỐ BỔ TRỢ
     const posParts = selectedValues.court_pos.split('_');
     formData.append('court_distance', posParts[0]);
     formData.append('player_position', posParts[1]);
@@ -723,21 +751,22 @@
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('passportCard').style.display = 'block';
 
-    const ratingVal = resData.calculated_rating || resData.r || '4.24 PVNA';
-    const tierRaw = resData.tournament_tier || resData.tier || 'pro';
-    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal, tierRaw);
+    const ratingVal = resData.calculated_rating || resData.r || '3.85 PVNA';
+    const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
+    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal, selectedTierKey);
     
-    let tierVal = 'Pro Elite';
-    if (currentLang === 'vi') {
-      tierVal = 'Pro Elite / Chuyên nghiệp';
-    }
+    // HIỂN THỊ ĐÚNG CẤP ĐỘ GIẢI THEO FORM NGUYÊN BẢN
+    const tierVal = resData.t || getTierLabel(selectedTierKey, currentLang);
 
-    const elbowVal = resData.avg_elbow_angle || resData.e || '118.5°';
-    const kneeVal = resData.avg_knee_angle || resData.k || '134.2°';
-    const compositeVal = resData.overall_composite_score || resData.c || '83.4/100';
+    const elbowVal = resData.avg_elbow_angle || resData.e || '117.5°';
+    const kneeVal = resData.avg_knee_angle || resData.k || '133.0°';
+    const compositeVal = resData.overall_composite_score || resData.c || '88.5/100';
     const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
 
-    document.getElementById('resTargetIdentity').innerText = getVisualProfileString(currentLang);
+    // ĐỌC ĐỘNG TRANG PHỤC ĐÃ CHỌN TRÊN FORM NẾU KHÔNG CÓ DỮ LIỆU QR
+    const targetText = resData.vp || getSelectedVisualProfile(currentLang);
+
+    document.getElementById('resTargetIdentity').innerText = targetText;
     document.getElementById('resRating').innerText = ratingVal;
     document.getElementById('resDupr').innerText = duprVal;
     document.getElementById('resTier').innerText = tierVal;
@@ -746,13 +775,15 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    const numR = parseFloat(ratingVal) || 4.24;
-    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 7.25;
-    const numE = parseFloat(elbowVal) || 118.5;
-    const numK = parseFloat(kneeVal) || 134.2;
-    const numC = parseFloat(compositeVal) || 83.4;
+    // ĐÓNG GÓI CHUỖI SIÊU NGẮN ĐẦY ĐỦ CÁC LỰA CHỌN ĐỂ TẠO QR
+    const numR = parseFloat(ratingVal) || 3.85;
+    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 3.81;
+    const numE = parseFloat(elbowVal) || 117.5;
+    const numK = parseFloat(kneeVal) || 133.0;
+    const numC = parseFloat(compositeVal) || 88.5;
 
-    const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang}`;
+    // Cấu trúc QR: PVNA,DUPR,Elbow,Knee,Composite,Lang,TierKey
+    const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang},${selectedTierKey}`;
 
     const baseUrl = window.location.protocol.startsWith('http') 
       ? `${window.location.origin}${window.location.pathname}` 
@@ -807,6 +838,7 @@
           const k = parts[3];
           const c = parts[4];
           const lang = parts[5];
+          const tierKey = parts[6] || 'intermediate';
 
           if (lang && lang !== currentLang) {
             currentLang = lang;
@@ -828,6 +860,8 @@
             e: `${e}°`,
             k: `${k}°`,
             c: `${c}/100`,
+            tierKey: tierKey,
+            t: getTierLabel(tierKey, currentLang),
             id: `PICKLE-AI-PLAYER-V3`
           });
         }
