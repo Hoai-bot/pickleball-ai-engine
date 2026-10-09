@@ -644,18 +644,24 @@
     const formData = new FormData();
     formData.append('lang', currentLang);
 
-    // TRUYỀN FILE HOẶC URL TÙY CHẾ ĐỘ
+    // 1. XỬ LÝ TRUYỀN DỮ LIỆU TÁCH BIỆT CHUẨN FASTAPI
     if (activeVideoMode === 'file') {
       const fileInput = document.getElementById('video_file');
       if (!fileInput.files || fileInput.files.length === 0) {
         alert(currentLang === 'vi' ? '⚠️ Vui lòng chọn một file video từ thiết bị!' : '⚠️ Please select a video file from your device!');
         return;
       }
-      formData.append('video_file', fileInput.files[0]);
+      formData.append('file', fileInput.files[0]);
     } else {
-      formData.append('video_url', document.getElementById('video_url').value);
+      const urlValue = document.getElementById('video_url').value.trim();
+      if (!urlValue) {
+        alert(currentLang === 'vi' ? '⚠️ Vui lòng nhập đường dẫn video!' : '⚠️ Please enter a video URL!');
+        return;
+      }
+      formData.append('video_url', urlValue);
     }
 
+    // 2. TRUYỀN THÔNG SỐ BỔ TRỢ
     const posParts = selectedValues.court_pos.split('_');
     formData.append('court_distance', posParts[0]);
     formData.append('player_position', posParts[1]);
