@@ -6,7 +6,7 @@
   <title>Pickleball AI Rating Passport - Precision Target Engine V3.6.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- NHÚNG THƯ VIỆN TAO MÃ QR TRỰC TIẾP CHUẨN XÁC KÍCH THƯỚC CAO -->
+  <!-- THƯ VIỆN QRJS TRỰC TIẾP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -262,12 +262,11 @@
       gap: 14px;
     }
 
-    /* KHUNG CHỨA MÃ QR VẼ TỰ ĐỘNG BẰNG JS CANVAS */
     .qr-container {
       width: 120px;
       height: 120px;
       background: #fff;
-      padding: 6px;
+      padding: 4px;
       border-radius: 8px;
       border: 2px solid var(--accent-gold);
       flex-shrink: 0;
@@ -452,7 +451,6 @@
       </div>
 
       <div class="qr-section">
-        <!-- KHUNG CHỨA CANVAS QR TẠO BẰNG JAVASCRIPT -->
         <div class="qr-container" id="qrContainer"></div>
         <div>
           <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PICKLE-AI-PLAYER-V3</div>
@@ -487,7 +485,6 @@
   };
 
   let lastPassportData = null;
-  let qrCodeInstance = null;
 
   function selectBadge(groupId, el, val) {
     document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
@@ -640,33 +637,33 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    // TẠO PAYLOAD SIÊU RÚT GỌN CHỈ ~25 KÝ TỰ (BẰNG DẤU PHÂN CÁCH PIPE)
-    // Cấu trúc: PVNA|DUPR|GócTay|GócGối|ĐiểmTổng|NgônNgữ
-    const numRating = parseFloat(ratingVal) || 4.24;
-    const numDupr = parseFloat(duprVal.replace('DUPR ', '')) || 4.20;
-    const numElbow = parseFloat(elbowVal) || 118.5;
-    const numKnee = parseFloat(kneeVal) || 134.2;
-    const numComp = parseFloat(compositeVal) || 83.4;
+    // TỐI ƯU SIÊU CẮT GỌN URL CHỈ 20 KÝ TỰ CỰC THƯA (CÁC Ô VUÔNG MÃ QR TO BỰ LỚN)
+    const numR = parseFloat(ratingVal) || 4.24;
+    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 4.20;
+    const numE = parseFloat(elbowVal) || 118.5;
+    const numK = parseFloat(kneeVal) || 134.2;
+    const numC = parseFloat(compositeVal) || 83.4;
 
-    const shortPayload = `${numRating}|${numDupr}|${numElbow}|${numKnee}|${numComp}|${currentLang}`;
+    // Chuỗi tham số dạng: 4.24,4.20,118.5,134.2,83.4,vi
+    const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang}`;
 
     const baseUrl = window.location.protocol.startsWith('http') 
       ? `${window.location.origin}${window.location.pathname}` 
       : 'https://hoai-bot.github.io/pickleball-ai-engine/';
 
-    const passportWebUrl = `${baseUrl}?p=${encodeURIComponent(shortPayload)}`;
+    const passportWebUrl = `${baseUrl}?p=${shortPayload}`;
 
-    // VẼ MÃ QR TRỰC TIẾP BẰNG JAVASCRIPT THAY VÌ GỌI API BAN NGOÀI
+    // TẠO CANVAS TRỰC TIẾP QUA THƯ VIỆN BẢO ĐẢM KHÔNG BỊ RỐI VÀ THƯA HẲN
     const qrContainer = document.getElementById('qrContainer');
-    qrContainer.innerHTML = ''; // Xóa QR cũ nếu có
+    qrContainer.innerHTML = '';
 
-    qrCodeInstance = new QRCode(qrContainer, {
+    new QRCode(qrContainer, {
       text: passportWebUrl,
-      width: 120,
-      height: 120,
-      colorDark : "#0f172a",
-      colorLight : "#ffffff",
-      correctLevel : QRCode.CorrectLevel.L // Độ lỗi L giúp các ô vuông QR thưa nhất có thể
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.L // CorrectLevel.L giúp ô vuông cực thưa, to và cực kỳ dễ quét
     });
   }
 
@@ -691,13 +688,13 @@
     }, 2000);
   }
 
-  // GIẢI MÃ CHUỖI SIÊU RÚT GỌN TỪ QUÉT QR
+  // ĐỌC THAM SỐ SIÊU NGẮN TỪ MÃ QR KHI QUÉT ĐIỆN THOẠI
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
     if (pPayload) {
       try {
-        const parts = decodeURIComponent(pPayload).split('|');
+        const parts = pPayload.split(',');
         if (parts.length >= 6) {
           const r = parts[0];
           const d = parts[1];
