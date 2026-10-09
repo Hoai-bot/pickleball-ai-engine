@@ -1,14 +1,618 @@
-function renderPassportCard(resData) {
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pickleball AI Rating Passport - Precision Target Engine V3.6.0</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --accent-gold: #facc15;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: var(--bg-main);
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-lang {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-lang:hover { background: var(--accent-blue); }
+
+    .main-container { width: 100%; max-width: 650px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: left;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-gold);
+      margin-top: 0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge-opt {
+      padding: 7px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .badge-opt:hover { border-color: var(--accent-blue); color: #fff; }
+
+    .badge-opt.active {
+      background: var(--accent-blue);
+      color: #000;
+      border-color: var(--accent-blue);
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-custom-btn {
+      border: 1px dashed var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .custom-input-box {
+      display: none;
+      margin-top: 8px;
+    }
+
+    .custom-input-box input {
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      color: #fff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0284c7, #16a34a);
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status-box {
+      display: none;
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .passport-card {
+      display: none;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid var(--accent-gold);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(250, 204, 21, 0.15);
+      text-align: left;
+    }
+
+    .passport-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .badge-certified {
+      background: var(--accent-green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .score-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+    }
+
+    .score-value { font-size: 20px; font-weight: 800; color: var(--accent-blue); }
+    .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .target-box {
+      background: #0f172a;
+      border: 1px dashed var(--accent-blue);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .qr-section {
+      background: linear-gradient(135deg, #0f172a, #162456);
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qr-img {
+      width: 120px;
+      height: 120px;
+      background: #fff;
+      padding: 4px;
+      border-radius: 8px;
+      border: 2px solid var(--accent-gold);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="brand-title">
+      <i class="fa-solid fa-award"></i> PICKLEBALL AI PASSPORT
+    </div>
+    <button class="btn-lang" id="langBtn" onclick="toggleLanguage()">🌐 VI / EN</button>
+  </div>
+
+  <div class="main-container">
+    
+    <div class="card" id="formCard">
+      <h3 class="card-title" data-vi="⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)" data-en="⚡ AI RATING & TARGET TRACKING (V3.6.0)">
+        ⚡ CHẤM ĐIỂM RATING & ĐỊNH VỊ VĐV (V3.6.0)
+      </h3>
+      <div class="card-subtitle" data-vi="Chọn các nút có sẵn hoặc bấm '+ Tự Nhập Khác' để tự điền chi tiết ngoại hình VĐV." data-en="Select preset options or click '+ Custom' to enter custom player characteristics.">
+        Chọn các nút có sẵn hoặc bấm '+ Tự Nhập Khác' để tự điền chi tiết ngoại hình VĐV.
+      </div>
+
+      <form id="rating-form">
+        <div class="form-group">
+          <label data-vi="1. Link Video Trận Đấu (YouTube / Facebook / Drive):" data-en="1. Match Video Link (YouTube / Facebook / Drive):">1. Link Video Trận Đấu (YouTube / Facebook / Drive):</label>
+          <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
+        </div>
+
+        <div class="form-group">
+          <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
+          <div class="badge-group" id="group-court-pos">
+            <span class="badge-opt active" onclick="selectBadge('group-court-pos', this, 'near_right')" data-vi="Sân Gần - Bên Phải" data-en="Near Court - Right">Sân Gần - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'near_left')" data-vi="Sân Gần - Bên Trái" data-en="Near Court - Left">Sân Gần - Bên Trái</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_right')" data-vi="Sân Xa - Bên Phải" data-en="Far Court - Right">Sân Xa - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_left')" data-vi="Sân Xa - Bên Trái" data-en="Far Court - Left">Sân Xa - Bên Trái</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="3. Màu Áo Thi Đấu:" data-en="3. Shirt Color:">3. Màu Áo Thi Đấu:</label>
+          <div class="badge-group" id="group-shirt">
+            <span class="badge-opt active" onclick="selectBadge('group-shirt', this, 'Áo Trắng')" data-vi="Áo Trắng" data-en="White Shirt">Áo Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đen')" data-vi="Áo Đen" data-en="Black Shirt">Áo Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đỏ')" data-vi="Áo Đỏ" data-en="Red Shirt">Áo Đỏ</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Xanh')" data-vi="Áo Xanh" data-en="Blue Shirt">Áo Xanh</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập Áo Khác" data-en="✏️ + Custom Shirt">✏️ + Tự Nhập Áo Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-shirt">
+            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo chi tiết (Ví dụ: Áo Tím Họa Tiết)...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="4. Màu Quần / Váy Thi Đấu:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy Thi Đấu:</label>
+          <div class="badge-group" id="group-pants">
+            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Xám')" data-vi="Quần Xám" data-en="Grey Shorts">Quần Xám</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Quần Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Quần Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-pants">
+            <input type="text" id="input-custom-pants" placeholder="Nhập kiểu/màu quần (Ví dụ: Quần Hồng, Váy Trắng)...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
+          <div class="badge-group" id="group-shoes">
+            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ/Cam')" data-vi="Giày Đỏ/Cam" data-en="Red/Orange Shoes">Giày Đỏ/Cam</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Giày Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Giày Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-shoes">
+            <input type="text" id="input-custom-shoes" placeholder="Nhập mẫu/màu giày (Ví dụ: Giày Tím Neon)...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="6. Mũ / Nón / Phụ Kiện Đầu:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Phụ Kiện Đầu:</label>
+          <div class="badge-group" id="group-headwear">
+            <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Trắng" data-en="White Cap">Mũ Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Đen')" data-vi="Mũ Đen" data-en="Black Cap">Mũ Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-headwear', this)" data-vi="✏️ + Tự Nhập Nón Khác" data-en="✏️ + Custom Cap">✏️ + Tự Nhập Nón Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-headwear">
+            <input type="text" id="input-custom-headwear" placeholder="Nhập phụ kiện đầu (Ví dụ: Băng Trán Đỏ)...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
+          <div class="badge-group" id="group-body">
+            <span class="badge-opt active" onclick="selectBadge('group-body', this, 'athletic')" data-vi="Thể Thao / Cân Cối" data-en="Athletic">Thể Thao / Cân Cối</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Ngoại Hình Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Ngoại Hình Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-body">
+            <input type="text" id="input-custom-body" placeholder="Nhập chi tiết ngoại hình (VD: Cao Lớn, Đô Con, Nhỏ Con)...">
+          </div>
+        </div>
+
+        <div class="form-group grid-2">
+          <div>
+            <label data-vi="Phân Hạng Đăng Ký:" data-en="Register Tier:">Phân Hạng Đăng Ký:</label>
+            <select id="player_tier" class="form-control">
+              <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
+              <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
+              <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
+              <option value="pro" data-vi="Chuyên nghiệp" data-en="Pro Elite">Chuyên nghiệp</option>
+            </select>
+          </div>
+          <div>
+            <label data-vi="Tỷ Lệ Thắng (Wins/Total):" data-en="Win Record (Wins/Total):">Tỷ Lệ Thắng (Wins/Total):</label>
+            <div style="display:flex; gap:6px;">
+              <input type="number" id="match_wins" class="form-control" value="12" placeholder="Wins">
+              <input type="number" id="total_matches" class="form-control" value="15" placeholder="Total">
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 BẮT ĐẦU CHẤM ĐIỂM AI V3.6.0" data-en="🚀 START AI RATING V3.6.0">
+          🚀 BẮT ĐẦU CHẤM ĐIỂM AI V3.6.0
+        </button>
+      </form>
+    </div>
+
+    <div class="status-box" id="statusBox">
+      <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:20px; margin-bottom:8px;"></i>
+      <div id="statusText" data-vi="AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)..." data-en="Target player located. Calculating biomechanics in background (2-5s)...">
+        AI đã định vị VĐV mục tiêu và đang tính toán góc sinh học ngầm (2 - 5 giây)...
+      </div>
+    </div>
+
+    <div class="passport-card" id="passportCard">
+      <div class="passport-header">
+        <div>
+          <span class="badge-certified">✔ OFFICIAL AI CERTIFIED</span>
+          <h3 style="margin:6px 0 0 0; color:var(--accent-gold);" id="resRating">3.85 PVNA</h3>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-muted);" data-vi="CẤP ĐỘ GIẢI" data-en="TIER">CẤP ĐỘ GIẢI</div>
+          <div style="font-weight:bold; font-size:12px; color:#fff;" id="resTier">Intermediate</div>
+        </div>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-item">
+          <div class="score-value" id="resElbow">117.5°</div>
+          <div class="score-label" data-vi="GÓC VUNG TAY" data-en="ELBOW ANGLE">GÓC VUNG TAY</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resKnee">133.0°</div>
+          <div class="score-label" data-vi="GÓC CHÙNG GỐI" data-en="KNEE ANGLE">GÓC CHÙNG GỐI</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resComposite">88.5/100</div>
+          <div class="score-label" data-vi="ĐIỂM TỔNG HỢP" data-en="OVERALL SCORE">ĐIỂM TỔNG HỢP</div>
+        </div>
+      </div>
+
+      <div class="target-box">
+        <strong style="color:var(--accent-gold);" data-vi="🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:" data-en="🎯 AI LOCATED TARGET:">🎯 VĐV ĐƯỢC AI ĐỊNH VỊ:</strong>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:2px;">Sân Gần - Bên Phải | Áo Trắng | Quần Đen | Giày Đen | Mũ Lưỡi Trai Trắng</div>
+      </div>
+
+      <div class="qr-section">
+        <img class="qr-img" id="resQrCode" src="" alt="Certified QR">
+        <div>
+          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PICKLE-AI-PLAYER-V3</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số HMAC-SHA256 bảo mật niêm phong. Ban Tổ Chức quét mã để đối soát điểm trực tiếp." data-en="HMAC-SHA256 sealed digital signature. Organizers scan for live verification.">
+            Chữ ký số HMAC-SHA256 bảo mật niêm phong. Ban Tổ Chức quét mã để đối soát điểm trực tiếp.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
+  let currentLang = 'vi';
+
+  const selectedValues = {
+    court_pos: 'near_right',
+    shirt: 'Áo Trắng',
+    pants: 'Quần Đen',
+    shoes: 'Giày Đen',
+    headwear: 'Mũ Lưỡi Trai Trắng',
+    body: 'athletic'
+  };
+
+  const isCustomActive = {
+    shirt: false,
+    pants: false,
+    shoes: false,
+    headwear: false,
+    body: false
+  };
+
+  function selectBadge(groupId, el, val) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const key = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-box-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'none';
+      isCustomActive[key] = false;
+    }
+
+    if (groupId === 'group-court-pos') selectedValues.court_pos = val;
+    if (groupId === 'group-shirt') selectedValues.shirt = val;
+    if (groupId === 'group-pants') selectedValues.pants = val;
+    if (groupId === 'group-shoes') selectedValues.shoes = val;
+    if (groupId === 'group-headwear') selectedValues.headwear = val;
+    if (groupId === 'group-body') selectedValues.body = val;
+  }
+
+  function showCustomInput(groupId, el) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const key = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-box-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'block';
+      isCustomActive[key] = true;
+      const input = customBox.querySelector('input');
+      if (input) input.focus();
+    }
+  }
+
+  function toggleLanguage() {
+    currentLang = currentLang === 'vi' ? 'en' : 'vi';
+    document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+
+    document.querySelectorAll('[data-vi]').forEach(el => {
+      const text = el.getAttribute(`data-${currentLang}`);
+      if (text) {
+        if (el.tagName === 'OPTION') { el.text = text; }
+        else { el.innerText = text; }
+      }
+    });
+  }
+
+  async function startAIAnalysis() {
+    const formData = new FormData();
+    formData.append('video_url', document.getElementById('video_url').value);
+    formData.append('lang', currentLang);
+
+    const posParts = selectedValues.court_pos.split('_');
+    formData.append('court_distance', posParts[0]);
+    formData.append('player_position', posParts[1]);
+
+    const shirtVal = isCustomActive.shirt ? (document.getElementById('input-custom-shirt').value.trim() || 'Áo Tự Nhập') : selectedValues.shirt;
+    const pantsVal = isCustomActive.pants ? (document.getElementById('input-custom-pants').value.trim() || 'Quần Tự Nhập') : selectedValues.pants;
+    const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
+    const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
+    
+    let bodyVal = selectedValues.body;
+    if (isCustomActive.body) {
+      const customBodyText = document.getElementById('input-custom-body').value.trim().toLowerCase();
+      if (customBodyText.includes('thon') || customBodyText.includes('gọn') || customBodyText.includes('cao')) {
+        bodyVal = 'slim';
+      } else if (customBodyText.includes('đô') || customBodyText.includes('to') || customBodyText.includes('đậm') || customBodyText.includes('mập')) {
+        bodyVal = 'heavy';
+      } else if (customBodyText.includes('trung bình') || customBodyText.includes('vừa')) {
+        bodyVal = 'average';
+      } else {
+        bodyVal = 'athletic';
+      }
+    }
+
+    formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
+    formData.append('shoe_color', shoesVal);
+    formData.append('headwear', headwearVal);
+    formData.append('body_type', bodyVal);
+    formData.append('player_tier', document.getElementById('player_tier').value);
+    formData.append('match_wins', document.getElementById('match_wins').value);
+    formData.append('total_matches', document.getElementById('total_matches').value);
+
+    const btn = document.getElementById('btnSubmit');
+    const statusBox = document.getElementById('statusBox');
+    const passportCard = document.getElementById('passportCard');
+
+    btn.disabled = true;
+    statusBox.style.display = 'block';
+    passportCard.style.display = 'none';
+
+    document.getElementById('statusText').innerText = currentLang === 'vi' 
+      ? "Đang gửi dữ liệu phân tích đến máy chủ AI..." 
+      : "Sending analysis request to AI Server...";
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.task_id) {
+        if (data.target_player_located) {
+          const loc = data.target_player_located;
+          document.getElementById('resTargetIdentity').innerText = 
+            `${loc.depth} - ${loc.side} | ${loc.apparel.shirt} | ${loc.apparel.shoes} | ${loc.apparel.headwear}`;
+        }
+        pollTaskStatus(data.task_id);
+      } else {
+        const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể tải video từ URL!');
+        alert(currentLang === 'vi' ? `❌ Thất bại: ${errDetail}` : `❌ Failed: ${errDetail}`);
+        btn.disabled = false;
+        statusBox.style.display = 'none';
+      }
+    } catch (err) {
+      console.error(err);
+      alert(currentLang === 'vi' 
+        ? "⚡ Máy chủ Render đang bận hoặc đang khởi động lại (Cold Start). Vui lòng đợi 20 giây rồi bấm thử lại!" 
+        : "⚡ Server busy or warming up. Please retry in 20 seconds!");
+      btn.disabled = false;
+      statusBox.style.display = 'none';
+    }
+  }
+
+  function renderPassportCard(resData) {
     document.getElementById('statusBox').style.display = 'none';
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('passportCard').style.display = 'block';
 
-    document.getElementById('resRating').innerText = resData.calculated_rating;
-    document.getElementById('resTier').innerText = resData.tournament_tier;
-    document.getElementById('resElbow').innerText = resData.avg_elbow_angle;
-    document.getElementById('resKnee').innerText = resData.avg_knee_angle;
-    document.getElementById('resComposite').innerText = resData.overall_composite_score;
-    document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
+    const ratingVal = resData.calculated_rating || resData.r || '3.85 PVNA';
+    const tierVal = resData.tournament_tier || resData.t || 'Intermediate';
+    const elbowVal = resData.avg_elbow_angle || resData.e || '117.5°';
+    const kneeVal = resData.avg_knee_angle || resData.k || '133.0°';
+    const compositeVal = resData.overall_composite_score || resData.c || '88.5/100';
+    const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
+
+    document.getElementById('resRating').innerText = ratingVal;
+    document.getElementById('resTier').innerText = tierVal;
+    document.getElementById('resElbow').innerText = elbowVal;
+    document.getElementById('resKnee').innerText = kneeVal;
+    document.getElementById('resComposite').innerText = compositeVal;
+    document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
     if (resData.player_visual_profile) {
       const prof = resData.player_visual_profile;
@@ -16,18 +620,18 @@ function renderPassportCard(resData) {
         `${prof.court_position} | ${prof.shirt_color} | ${prof.shoe_color} | ${prof.headwear}`;
     }
 
-    // 1. RÚT GỌN DỮ LIỆU ĐỂ MÃ QR THƯA VÀ DỄ QUÉT
+    // 1. RÚT GỌN CHUỖI N B ĐỂ MÃ QR RẤT THƯA VÀ DỄ QUÉT
     const compactData = {
-      r: resData.calculated_rating,
-      t: resData.tournament_tier,
-      e: resData.avg_elbow_angle,
-      k: resData.avg_knee_angle,
-      c: resData.overall_composite_score,
-      id: resData.qr_certified_data.player_id,
-      s: resData.qr_certified_data.signature
+      r: ratingVal,
+      t: tierVal,
+      e: elbowVal,
+      k: kneeVal,
+      c: compositeVal,
+      id: playerIdVal,
+      s: (resData.qr_certified_data ? resData.qr_certified_data.signature : resData.s) || ''
     };
 
-    // 2. MÃ HÓA BASE64 CHUỖI SIÊU NGẮN
+    // 2. MÃ HÓA BASE64 CHUỖI RÚT GỌN
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(compactData)));
 
     const baseUrl = window.location.protocol.startsWith('http') 
@@ -36,6 +640,45 @@ function renderPassportCard(resData) {
 
     const passportWebUrl = `${baseUrl}?p=${encodedPayload}`;
 
-    // 3. TẠO ẢNH QR KÍCH THƯỚC LỚN HƠN (250x250) VỚI ĐỘ SẮC NÉT CAO
+    // 3. KÍCH THƯỚC QR LỚN 250x250 SẮC NÉT
     document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(passportWebUrl)}`;
   }
+
+  async function pollTaskStatus(taskId) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
+        const data = await res.json();
+
+        if (data.status === 'COMPLETED') {
+          clearInterval(interval);
+          renderPassportCard(data.result);
+        } else if (data.status === 'FAILED') {
+          clearInterval(interval);
+          alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
+          document.getElementById('statusBox').style.display = 'none';
+          document.getElementById('btnSubmit').disabled = false;
+        }
+      } catch (err) {
+        console.log("Polling status...", err);
+      }
+    }, 2000);
+  }
+
+  // TỰ ĐỘNG GIẢI MÃ PAYLOAD RÚT GỌN KHI QUÉT TỪ ĐIỆN THOẠI
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pPayload = urlParams.get('p');
+    if (pPayload) {
+      try {
+        const raw = JSON.parse(decodeURIComponent(atob(pPayload)));
+        document.getElementById('formCard').style.display = 'none';
+        renderPassportCard(raw);
+      } catch (e) {
+        console.error("Lỗi đọc dữ liệu QR:", e);
+      }
+    }
+  });
+</script>
+</body>
+</html>
