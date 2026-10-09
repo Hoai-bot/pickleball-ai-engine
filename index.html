@@ -116,6 +116,45 @@
       outline: none;
     }
 
+    /* CHỌN CHẾ ĐỘ NHẬP VIDEO */
+    .input-mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .file-input-wrapper {
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      background: #0f172a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .file-input-wrapper:hover { border-color: var(--accent-blue); }
+
     .badge-group { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .badge-opt {
@@ -301,9 +340,30 @@
       </div>
 
       <form id="rating-form">
+        <!-- CHỌN CHẾ ĐỘ DÁN LINK / UPLOAD FILE -->
         <div class="form-group">
-          <label data-vi="1. Link Video Trận Đấu (YouTube / Facebook / Drive):" data-en="1. Match Video Link (YouTube / Facebook / Drive):">1. Link Video Trận Đấu (YouTube / Facebook / Drive):</label>
-          <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA">
+          <label data-vi="1. Phương Thức Tải Video Trận Đấu:" data-en="1. Match Video Input Method:">1. Phương Thức Tải Video Trận Đấu:</label>
+          <div class="input-mode-tabs">
+            <div class="tab-btn active" id="tabUrl" onclick="switchVideoMode('url')" data-vi="🔗 Dán Link URL" data-en="🔗 Paste URL">🔗 Dán Link URL</div>
+            <div class="tab-btn" id="tabFile" onclick="switchVideoMode('file')" data-vi="📁 Tải Video Từ Điện Thoại / Máy Tính" data-en="📁 Upload Local Video File">📁 Tải Video Từ Máy</div>
+          </div>
+
+          <!-- O 1: LINK URL (YouTube/Drive/Facebook) -->
+          <div id="videoUrlContainer">
+            <input type="text" id="video_url" class="form-control" value="https://youtu.be/UF0i_EboHqA" placeholder="Dán đường dẫn video (YouTube / Facebook / Drive)...">
+          </div>
+
+          <!-- O 2: CHỌN FILE VIDEO TỰ ĐIỆN THOẠI/MÁY TÍNH -->
+          <div id="videoFileContainer" style="display:none;">
+            <div class="file-input-wrapper" onclick="document.getElementById('video_file').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--accent-blue); margin-bottom:6px;"></i>
+              <div style="font-size:12px; color:#cbd5e1; font-weight:600;" id="fileNameDisplay" data-vi="Bấm vào đây để chọn video từ thư viện máy" data-en="Click here to select video from your device">
+                Bấm vào đây để chọn video từ thư viện máy
+              </div>
+              <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" data-vi="(Hỗ trợ mp4, mov, avi - tối đa 100MB)" data-en="(Supports mp4, mov, avi - max 100MB)">(Hỗ trợ mp4, mov, avi - tối đa 100MB)</div>
+            </div>
+            <input type="file" id="video_file" accept="video/*" style="display:none;" onchange="handleFileSelect(this)">
+          </div>
         </div>
 
         <div class="form-group">
@@ -466,6 +526,7 @@
 <script>
   const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
   let currentLang = 'vi';
+  let activeVideoMode = 'url'; // 'url' hoac 'file'
 
   const selectedValues = {
     court_pos: 'near_right',
@@ -485,6 +546,29 @@
   };
 
   let lastPassportData = null;
+
+  function switchVideoMode(mode) {
+    activeVideoMode = mode;
+    if (mode === 'url') {
+      document.getElementById('tabUrl').classList.add('active');
+      document.getElementById('tabFile').classList.remove('active');
+      document.getElementById('videoUrlContainer').style.display = 'block';
+      document.getElementById('videoFileContainer').style.display = 'none';
+    } else {
+      document.getElementById('tabFile').classList.add('active');
+      document.getElementById('tabUrl').classList.remove('active');
+      document.getElementById('videoFileContainer').style.display = 'block';
+      document.getElementById('videoUrlContainer').style.display = 'none';
+    }
+  }
+
+  function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      document.getElementById('fileNameDisplay').innerText = `📹 Video đã chọn: ${file.name} (${(file.size / (1024*1024)).toFixed(1)}MB)`;
+      document.getElementById('fileNameDisplay').style.color = 'var(--accent-gold)';
+    }
+  }
 
   function selectBadge(groupId, el, val) {
     document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
@@ -543,27 +627,34 @@
     }
   }
 
-  // THUẬT TOÁN TÍNH DUPR CHUẨN QUỐC TẾ (ĐÃ FIX CHO BEN JOHNS & VĐV PRO ELITE TOP THẾ GIỚI 7.0+)
   function calculateDUPR(pvnaString, tierVal) {
     const numericPVNA = parseFloat(pvnaString) || 4.24;
     const currentTier = tierVal || document.getElementById('player_tier').value;
 
-    // Phân hạng Chuyên Nghiệp (Pro / World Class Elite)
     if (currentTier === 'pro' || currentTier === 'Pro Elite' || currentTier === 'Pro Elite / Chuyên nghiệp') {
-      // Ben Johns / Pro Top World: DUPR từ 7.00 - 7.55
-      let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25; // Bonus cho tỷ lệ thắng cao
+      let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25;
       return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
     }
     
-    // Các hạng Phong trào / Open (2.5 - 5.5 DUPR)
     const standardDupr = Math.max(1.0, Math.min(5.5, numericPVNA - 0.04));
     return `DUPR ${standardDupr.toFixed(2)}`;
   }
 
   async function startAIAnalysis() {
     const formData = new FormData();
-    formData.append('video_url', document.getElementById('video_url').value);
     formData.append('lang', currentLang);
+
+    // TRUYỀN FILE HOẶC URL TÙY CHẾ ĐỘ
+    if (activeVideoMode === 'file') {
+      const fileInput = document.getElementById('video_file');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert(currentLang === 'vi' ? '⚠️ Vui lòng chọn một file video từ thiết bị!' : '⚠️ Please select a video file from your device!');
+        return;
+      }
+      formData.append('video_file', fileInput.files[0]);
+    } else {
+      formData.append('video_url', document.getElementById('video_url').value);
+    }
 
     const posParts = selectedValues.court_pos.split('_');
     formData.append('court_distance', posParts[0]);
@@ -591,8 +682,8 @@
     passportCard.style.display = 'none';
 
     document.getElementById('statusText').innerText = currentLang === 'vi' 
-      ? "Đang gửi dữ liệu phân tích đến máy chủ AI..." 
-      : "Sending analysis request to AI Server...";
+      ? (activeVideoMode === 'file' ? "Đang tải tệp video lên và phân tích AI..." : "Đang gửi dữ liệu phân tích đến máy chủ AI...") 
+      : (activeVideoMode === 'file' ? "Uploading video file & calculating AI..." : "Sending analysis request to AI Server...");
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
@@ -605,7 +696,7 @@
       if (res.ok && data.success && data.task_id) {
         pollTaskStatus(data.task_id);
       } else {
-        const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể tải video từ URL!');
+        const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể xử lý video!');
         alert(currentLang === 'vi' ? `❌ Thất bại: ${errDetail}` : `❌ Failed: ${errDetail}`);
         btn.disabled = false;
         statusBox.style.display = 'none';
@@ -649,7 +740,6 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    // MÃ HÓA CHUỖI SIÊU NGẮN TỐI ƯU CỰC DỄ QUÉT QR
     const numR = parseFloat(ratingVal) || 4.24;
     const numD = parseFloat(duprVal.replace('DUPR ', '')) || 7.25;
     const numE = parseFloat(elbowVal) || 118.5;
@@ -664,7 +754,6 @@
 
     const passportWebUrl = `${baseUrl}?p=${shortPayload}`;
 
-    // TẠO CANVAS QR NÉT CĂNG VỚI NÉT VẼ THƯA MẮT
     const qrContainer = document.getElementById('qrContainer');
     qrContainer.innerHTML = '';
 
