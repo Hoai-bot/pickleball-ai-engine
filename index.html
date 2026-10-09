@@ -113,6 +113,7 @@
       outline: none;
     }
 
+    /* BỘ NÚT CHỌN LINH HOẠT & NÚT KHÁC TỰ NHẬP */
     .badge-group {
       display: flex;
       flex-wrap: wrap;
@@ -540,7 +541,6 @@
     const shoesVal = isCustomActive.shoes ? (document.getElementById('input-custom-shoes').value.trim() || 'Giày Tự Nhập') : selectedValues.shoes;
     const headwearVal = isCustomActive.headwear ? (document.getElementById('input-custom-headwear').value.trim() || 'Nón Tự Nhập') : selectedValues.headwear;
     
-    // Chuẩn hóa từ khóa body_type tương thích với Backend Python main 1.py
     let bodyVal = selectedValues.body;
     if (isCustomActive.body) {
       const customBodyText = document.getElementById('input-custom-body').value.trim().toLowerCase();
@@ -591,7 +591,6 @@
         }
         pollTaskStatus(data.task_id);
       } else {
-        // Đọc mã chi tiết lỗi trả về từ HTTPException
         const errDetail = data.detail || data.message || (typeof data === 'string' ? data : 'Không thể tải video từ URL!');
         alert(currentLang === 'vi' ? `❌ Thất bại: ${errDetail}` : `❌ Failed: ${errDetail}`);
         btn.disabled = false;
@@ -627,8 +626,10 @@
           document.getElementById('resComposite').innerText = resData.overall_composite_score;
           document.getElementById('resPlayerId').innerText = `ID: ${resData.qr_certified_data.player_id}`;
 
-          const qrData = encodeURIComponent(JSON.stringify(resData.qr_certified_data));
-          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+          // TẠO MÃ QR DẠNG URL CHUẨN XÁC THỰC
+          const verifyUrl = `${API_BASE_URL}/api/task-status/${taskId}`;
+          document.getElementById('resQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
+
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
           alert(currentLang === 'vi' ? `❌ Phân tích AI gặp lỗi: ${data.error || 'Xử lý video thất bại'}` : `❌ AI analysis failed: ${data.error || 'Video process error'}`);
