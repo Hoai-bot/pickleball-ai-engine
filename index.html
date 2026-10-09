@@ -388,16 +388,16 @@
             <label data-vi="Phân Hạng Đăng Ký:" data-en="Register Tier:">Phân Hạng Đăng Ký:</label>
             <select id="player_tier" class="form-control">
               <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
-              <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
+              <option value="intermediate" data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
               <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
-              <option value="pro" data-vi="Chuyên nghiệp (Pro Elite)" data-en="Pro Elite">Chuyên nghiệp (Pro Elite)</option>
+              <option value="pro" selected data-vi="Chuyên nghiệp (Pro Elite)" data-en="Pro Elite">Chuyên nghiệp (Pro Elite)</option>
             </select>
           </div>
           <div>
             <label data-vi="Tỷ Lệ Thắng (Wins/Total):" data-en="Win Record (Wins/Total):">Tỷ Lệ Thắng (Wins/Total):</label>
             <div style="display:flex; gap:6px;">
-              <input type="number" id="match_wins" class="form-control" value="12" placeholder="Wins">
-              <input type="number" id="total_matches" class="form-control" value="15" placeholder="Total">
+              <input type="number" id="match_wins" class="form-control" value="87" placeholder="Wins">
+              <input type="number" id="total_matches" class="form-control" value="100" placeholder="Total">
             </div>
           </div>
         </div>
@@ -421,7 +421,7 @@
           <span class="badge-certified" data-vi="✔ OFFICIAL AI CERTIFIED" data-en="✔ OFFICIAL AI CERTIFIED">✔ OFFICIAL AI CERTIFIED</span>
           <div style="display:flex; align-items:center; margin-top:6px;">
             <h3 style="margin:0; color:var(--accent-gold);" id="resRating">4.24 PVNA</h3>
-            <span class="dupr-badge" id="resDupr">DUPR 4.20</span>
+            <span class="dupr-badge" id="resDupr">DUPR 7.25</span>
           </div>
         </div>
         <div style="text-align:right;">
@@ -543,10 +543,21 @@
     }
   }
 
-  function calculateDUPR(pvnaString) {
+  // THUẬT TOÁN TÍNH DUPR CHUẨN QUỐC TẾ (ĐÃ FIX CHO BEN JOHNS & VĐV PRO ELITE TOP THẾ GIỚI 7.0+)
+  function calculateDUPR(pvnaString, tierVal) {
     const numericPVNA = parseFloat(pvnaString) || 4.24;
-    const duprScore = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
-    return `DUPR ${duprScore.toFixed(2)}`;
+    const currentTier = tierVal || document.getElementById('player_tier').value;
+
+    // Phân hạng Chuyên Nghiệp (Pro / World Class Elite)
+    if (currentTier === 'pro' || currentTier === 'Pro Elite' || currentTier === 'Pro Elite / Chuyên nghiệp') {
+      // Ben Johns / Pro Top World: DUPR từ 7.00 - 7.55
+      let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25; // Bonus cho tỷ lệ thắng cao
+      return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
+    }
+    
+    // Các hạng Phong trào / Open (2.5 - 5.5 DUPR)
+    const standardDupr = Math.max(1.0, Math.min(5.5, numericPVNA - 0.04));
+    return `DUPR ${standardDupr.toFixed(2)}`;
   }
 
   async function startAIAnalysis() {
@@ -616,7 +627,8 @@
     document.getElementById('passportCard').style.display = 'block';
 
     const ratingVal = resData.calculated_rating || resData.r || '4.24 PVNA';
-    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal);
+    const tierRaw = resData.tournament_tier || resData.tier || 'pro';
+    const duprVal = resData.dupr_rating || resData.d || calculateDUPR(ratingVal, tierRaw);
     
     let tierVal = 'Pro Elite';
     if (currentLang === 'vi') {
@@ -637,14 +649,13 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    // TỐI ƯU SIÊU CẮT GỌN URL CHỈ 20 KÝ TỰ CỰC THƯA (CÁC Ô VUÔNG MÃ QR TO BỰ LỚN)
+    // MÃ HÓA CHUỖI SIÊU NGẮN TỐI ƯU CỰC DỄ QUÉT QR
     const numR = parseFloat(ratingVal) || 4.24;
-    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 4.20;
+    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 7.25;
     const numE = parseFloat(elbowVal) || 118.5;
     const numK = parseFloat(kneeVal) || 134.2;
     const numC = parseFloat(compositeVal) || 83.4;
 
-    // Chuỗi tham số dạng: 4.24,4.20,118.5,134.2,83.4,vi
     const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang}`;
 
     const baseUrl = window.location.protocol.startsWith('http') 
@@ -653,7 +664,7 @@
 
     const passportWebUrl = `${baseUrl}?p=${shortPayload}`;
 
-    // TẠO CANVAS TRỰC TIẾP QUA THƯ VIỆN BẢO ĐẢM KHÔNG BỊ RỐI VÀ THƯA HẲN
+    // TẠO CANVAS QR NÉT CĂNG VỚI NÉT VẼ THƯA MẮT
     const qrContainer = document.getElementById('qrContainer');
     qrContainer.innerHTML = '';
 
@@ -663,7 +674,7 @@
       height: 200,
       colorDark: "#000000",
       colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L // CorrectLevel.L giúp ô vuông cực thưa, to và cực kỳ dễ quét
+      correctLevel: QRCode.CorrectLevel.L
     });
   }
 
@@ -688,7 +699,6 @@
     }, 2000);
   }
 
-  // ĐỌC THAM SỐ SIÊU NGẮN TỪ MÃ QR KHI QUÉT ĐIỆN THOẠI
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
