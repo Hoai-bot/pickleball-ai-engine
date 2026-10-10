@@ -465,8 +465,8 @@
 
     <div class="status-box" id="statusBox">
       <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:20px; margin-bottom:8px;"></i>
-      <div id="statusText" data-vi="AI đã định vị VĐV mục tiêu và đang tính toán điểm Hybrid động..." data-en="Target player located. Calculating Dynamic Hybrid Score...">
-        AI đã định vị VĐV mục tiêu và đang tính toán điểm Hybrid động...
+      <div id="statusText" data-vi="AI đã định vị VĐV mục tiêu và đang tính toán điểm Dynamic Hybrid..." data-en="Target player located. Calculating Dynamic Hybrid Score...">
+        AI đã định vị VĐV mục tiêu và đang tính toán điểm Dynamic Hybrid...
       </div>
     </div>
 
@@ -653,18 +653,6 @@
     }
   }
 
-  function calculateDynamicHybridPVNA(wins, total) {
-    const videoBioRating = 2.74; // Điểm sinh học kỹ thuật gốc từ video
-    if (!total || total <= 0) {
-      return videoBioRating.toFixed(2);
-    }
-    const winrate = (wins / total);
-    const matchRecordRating = 2.0 + (winrate * 1.8);
-    const hybridPvna = (videoBioRating * 0.4) + (matchRecordRating * 0.6);
-    return hybridPvna.toFixed(2);
-  }
-
-  // HÀM TÍNH DUPR ĐÃ FIX CHUẨN HÓA LIÊN THÔNG TẤT CẢ CÁC HẠNG
   function calculateDUPR(pvnaString, tierVal) {
     const numericPVNA = parseFloat(pvnaString) || 2.74;
     const currentTier = tierVal || document.getElementById('player_tier').value;
@@ -717,7 +705,7 @@
     formData.append('body_type', selectedValues.body);
     formData.append('player_tier', document.getElementById('player_tier').value);
 
-    // TRUYỀN CHÍNH XÁC 100% CÁC BIẾN WINS VÀ TOTAL TỪ FORM
+    // TRUYỀN CHÍNH XÁC CÁC BIẾN WINS VÀ TOTAL TỪ FORM SANG BACKEND
     const winsVal = parseInt(document.getElementById('match_wins').value) || 0;
     const totalVal = parseInt(document.getElementById('total_matches').value) || 0;
     formData.append('match_wins', winsVal.toString());
@@ -768,20 +756,16 @@
     document.getElementById('passportCard').style.display = 'block';
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
-    const winsVal = parseInt(document.getElementById('match_wins').value) || 0;
-    const totalVal = parseInt(document.getElementById('total_matches').value) || 0;
 
-    const computedPvna = calculateDynamicHybridPVNA(winsVal, totalVal);
+    // LẤY TRỰC TIẾP KẾT QUẢ ĐỘNG TÍNH TOÁN TỪ BACKEND PYTHON
+    const ratingVal = resData.calculated_rating ? resData.calculated_rating : "2.92 PVNA";
+    const duprVal = resData.dupr_rating ? resData.dupr_rating : calculateDUPR(ratingVal.replace(' PVNA', ''), selectedTierKey);
     
-    const ratingVal = `${computedPvna} PVNA`;
-    const duprVal = calculateDUPR(computedPvna, selectedTierKey);
-    
-    const tierVal = resData.t || getTierLabel(selectedTierKey, currentLang);
+    const tierVal = resData.tournament_tier || resData.t || getTierLabel(selectedTierKey, currentLang);
 
-    const elbowVal = '112.5°';
-    const kneeVal = '138.0°';
-    const compositeValRaw = Math.round(((parseFloat(computedPvna) - 2.0) / 2.0) * 100);
-    const compositeVal = `${compositeValRaw}/100`;
+    const elbowVal = resData.avg_elbow_angle || '112.5°';
+    const kneeVal = resData.avg_knee_angle || '138.0°';
+    const compositeVal = resData.overall_composite_score || '74.5/100';
     const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PICKLE-AI-PLAYER-V3';
 
     const targetText = resData.vp || getSelectedVisualProfile(currentLang);
@@ -795,11 +779,11 @@
     document.getElementById('resComposite').innerText = compositeVal;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    const numR = parseFloat(computedPvna);
+    const numR = parseFloat(ratingVal.replace(' PVNA', ''));
     const numD = parseFloat(duprVal.replace('DUPR ', ''));
-    const numE = 112.5;
-    const numK = 138.0;
-    const numC = compositeValRaw;
+    const numE = parseFloat(elbowVal);
+    const numK = parseFloat(kneeVal);
+    const numC = parseFloat(compositeVal);
 
     const encVp = btoa(encodeURIComponent(targetText));
     const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang},${selectedTierKey},${encVp}`;
@@ -878,11 +862,13 @@
           document.getElementById('formCard').style.display = 'none';
 
           renderPassportCard({
-            overall_composite_score: c,
+            calculated_rating: `${r} PVNA`,
+            dupr_rating: `DUPR ${d}`,
+            overall_composite_score: `${c}/100`,
             avg_elbow_angle: `${e}°`,
             avg_knee_angle: `${k}°`,
             tierKey: tierKey,
-            t: getTierLabel(tierKey, currentLang),
+            tournament_tier: getTierLabel(tierKey, currentLang),
             vp: decodedVp,
             id: `PICKLE-AI-PLAYER-V3`
           });
