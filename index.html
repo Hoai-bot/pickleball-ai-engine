@@ -431,7 +431,7 @@
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
             <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
-            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Ngoại Hình Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Ngoại Hình Khác</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Ngoại Hình Khác" data-en="✏️ + Custom Body">✏️ + Custom Body</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-body">
             <input type="text" id="input-custom-body" placeholder="Nhập chi tiết ngoại hình (VD: Cao Lớn, Đô Con, Nhỏ Con)...">
@@ -451,8 +451,8 @@
           <div>
             <label data-vi="Tỷ Lệ Thắng (Wins/Total):" data-en="Win Record (Wins/Total):">Tỷ Lệ Thắng (Wins/Total):</label>
             <div style="display:flex; gap:6px;">
-              <input type="number" id="match_wins" class="form-control" value="21" placeholder="Wins">
-              <input type="number" id="total_matches" class="form-control" value="38" placeholder="Total">
+              <input type="number" id="match_wins" class="form-control" value="15" placeholder="Wins">
+              <input type="number" id="total_matches" class="form-control" value="26" placeholder="Total">
             </div>
           </div>
         </div>
@@ -475,8 +475,8 @@
         <div>
           <span class="badge-certified" data-vi="✔ OFFICIAL AI CERTIFIED" data-en="✔ OFFICIAL AI CERTIFIED">✔ OFFICIAL AI CERTIFIED</span>
           <div style="display:flex; align-items:center; margin-top:6px;">
-            <h3 style="margin:0; color:var(--accent-gold);" id="resRating">2.89 PVNA</h3>
-            <span class="dupr-badge" id="resDupr">DUPR 2.85</span>
+            <h3 style="margin:0; color:var(--accent-gold);" id="resRating">2.92 PVNA</h3>
+            <span class="dupr-badge" id="resDupr">DUPR 2.88</span>
           </div>
         </div>
         <div style="text-align:right;">
@@ -653,29 +653,31 @@
     }
   }
 
-  // THUẬT TOÁN HYBRID CLIENT: TÍNH ĐIỂM THEO CẢ VIDEO BIOMECHANICS VÀ THẮNG/THUA THỰC TẾ
   function calculateDynamicHybridPVNA(wins, total) {
-    const videoBioRating = 2.74; // Điểm kỹ thuật gốc từ video
+    const videoBioRating = 2.74; // Điểm sinh học kỹ thuật gốc từ video
     if (!total || total <= 0) {
       return videoBioRating.toFixed(2);
     }
     const winrate = (wins / total);
-    // Quy đổi điểm thành tích thực tế
     const matchRecordRating = 2.0 + (winrate * 1.8);
-    // Phối hợp: 40% Video + 60% Kết quả thi đấu
     const hybridPvna = (videoBioRating * 0.4) + (matchRecordRating * 0.6);
     return hybridPvna.toFixed(2);
   }
 
+  // HÀM TÍNH DUPR ĐÃ FIX DỨT ĐIỂM LỖI 6.39
   function calculateDUPR(pvnaString, tierVal) {
     const numericPVNA = parseFloat(pvnaString) || 2.74;
     const currentTier = tierVal || document.getElementById('player_tier').value;
 
-    if (currentTier === 'pro' || currentTier === 'Pro Elite' || currentTier === 'Pro Elite / Chuyên nghiệp') {
+    const isProTier = (currentTier === 'pro' || currentTier === 'Pro Elite' || currentTier === 'Pro Elite / Chuyên nghiệp');
+    
+    // CHỈ KÍCH HOẠT DUPR PRO (7.0+) NẾU PVNA THỰC TẾ ĐẠT TỪ 4.0 TRỞ LÊN
+    if (isProTier && numericPVNA >= 4.0) {
       let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25;
       return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
     }
     
+    // NẾU PVNA < 4.0, DUPR LUÔN GIỮ CHUẨN HÓA QUANH MỐC PVNA - 0.04 (RA 2.88 DUPR)
     const standardDupr = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
     return `DUPR ${standardDupr.toFixed(2)}`;
   }
@@ -765,7 +767,6 @@
     const winsVal = parseFloat(document.getElementById('match_wins').value) || 0;
     const totalVal = parseFloat(document.getElementById('total_matches').value) || 0;
 
-    // TÍNH ĐIỂM HYBRID DYNAMIC TỪ THÀNH TÍCH VÀ ĐỘNG TÁC KỸ THUẬT
     const computedPvna = calculateDynamicHybridPVNA(winsVal, totalVal);
     
     const ratingVal = `${computedPvna} PVNA`;
