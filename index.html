@@ -654,15 +654,13 @@
     }
   }
 
-  // THUẬT TOÁN ĐÃ KHÓA CỐ ĐỊNH BIẾN THIÊN: DÙ CHỌN OPEN HAY SOCIAL THÌ ĐIỂM KỸ THUẬT VẪN CHUẨN XÁC 2.74 PVNA
-  function calculateAbsolutePVNA(compositeScore, userTier) {
+  // TÍNH ĐIỂM CỐ ĐỊNH THUẦN TÚY DỰA TRÊN CHẤT LƯỢNG KỸ THUẬT VIDEO
+  // Loại bỏ hoàn toàn sự can thiệp của Phân hạng đăng ký
+  function calculatePurePVNA(compositeScore) {
     const comp = parseFloat(compositeScore) || 74.5;
-    
-    // Động tác trình độ 74.5/100 sẽ luôn ra kết quả chuẩn mốc 2.74 PVNA
-    // Không cho phép Tier tác động lệch quá +/- 0.02
-    let absolutePvna = 2.0 + (comp / 100.0) * 1.0; // 74.5/100 -> 2.745 PVNA
-    
-    return absolutePvna.toFixed(2);
+    // Điểm động tác kỹ thuật 74.5/100 -> Cố định 2.74 PVNA (không lệch giữa Social/Open)
+    let purePvna = 2.0 + (comp / 100.0) * 1.0; 
+    return purePvna.toFixed(2);
   }
 
   function calculateDUPR(pvnaString, tierVal) {
@@ -761,11 +759,9 @@
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
 
-    // LẤY ĐIỂM ĐỘNG TÁC KỸ THUẬT TỪ VIDEO
+    // ÉP TÍNH PVNA CHUẨN XÁC NGUYÊN BẢN TỪ CHẤT LƯỢNG ĐỘNG TÁC
     const compositeValRaw = resData.overall_composite_score || resData.c || '74.5';
-    
-    // GHI ĐÈ ĐIỂM THEO HÀM CHUẨN ĐỘNG TÁC: BẤM BẤT KỲ TIER NÀO CŨNG RA CHUẨN XÁC 2.74 PVNA
-    const computedPvna = calculateAbsolutePVNA(compositeValRaw, selectedTierKey);
+    const computedPvna = calculatePurePVNA(compositeValRaw);
     
     const ratingVal = `${computedPvna} PVNA`;
     const duprVal = calculateDUPR(computedPvna, selectedTierKey);
@@ -871,11 +867,9 @@
           document.getElementById('formCard').style.display = 'none';
 
           renderPassportCard({
-            calculated_rating: r,
-            dupr_rating: `DUPR ${d}`,
+            overall_composite_score: c,
             avg_elbow_angle: `${e}°`,
             avg_knee_angle: `${k}°`,
-            overall_composite_score: c,
             tierKey: tierKey,
             t: getTierLabel(tierKey, currentLang),
             vp: decodedVp,
