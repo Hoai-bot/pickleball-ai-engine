@@ -664,7 +664,7 @@
     return hybridPvna.toFixed(2);
   }
 
-  // HÀM TÍNH DUPR ĐÃ FIX DỨT ĐIỂM LỖI 6.39
+  // HÀM TÍNH DUPR ĐÃ FIX CHUẨN HÓA LIÊN THÔNG TẤT CẢ CÁC HẠNG
   function calculateDUPR(pvnaString, tierVal) {
     const numericPVNA = parseFloat(pvnaString) || 2.74;
     const currentTier = tierVal || document.getElementById('player_tier').value;
@@ -677,7 +677,7 @@
       return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
     }
     
-    // NẾU PVNA < 4.0, DUPR LUÔN GIỮ CHUẨN HÓA QUANH MỐC PVNA - 0.04 (RA 2.88 DUPR)
+    // NẾU PVNA < 4.0, DUPR LUÔN GIỮ CHUẨN HÓA QUANH MỐC PVNA - 0.04
     const standardDupr = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
     return `DUPR ${standardDupr.toFixed(2)}`;
   }
@@ -716,8 +716,12 @@
     formData.append('headwear', headwearVal);
     formData.append('body_type', selectedValues.body);
     formData.append('player_tier', document.getElementById('player_tier').value);
-    formData.append('match_wins', document.getElementById('match_wins').value);
-    formData.append('total_matches', document.getElementById('total_matches').value);
+
+    // TRUYỀN CHÍNH XÁC 100% CÁC BIẾN WINS VÀ TOTAL TỪ FORM
+    const winsVal = parseInt(document.getElementById('match_wins').value) || 0;
+    const totalVal = parseInt(document.getElementById('total_matches').value) || 0;
+    formData.append('match_wins', winsVal.toString());
+    formData.append('total_matches', totalVal.toString());
 
     const btn = document.getElementById('btnSubmit');
     const statusBox = document.getElementById('statusBox');
@@ -764,8 +768,8 @@
     document.getElementById('passportCard').style.display = 'block';
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
-    const winsVal = parseFloat(document.getElementById('match_wins').value) || 0;
-    const totalVal = parseFloat(document.getElementById('total_matches').value) || 0;
+    const winsVal = parseInt(document.getElementById('match_wins').value) || 0;
+    const totalVal = parseInt(document.getElementById('total_matches').value) || 0;
 
     const computedPvna = calculateDynamicHybridPVNA(winsVal, totalVal);
     
