@@ -358,25 +358,32 @@ def process_video_async_task(
     avg_elbow = round(float(np.mean(elbow_angles)), 1) if elbow_angles else 112.5
     avg_knee = round(float(np.mean(knee_angles)), 1) if knee_angles else 138.0
 
-    # THUẬT TOÁN HYBRID: 40% VIDEO BIOMECHANICS + 60% MATCH RECORD
+    # THUẬT TOÁN HYBRID V3.6.5 NÂNG CẤP ĐỘNG
     elbow_score = max(0, 1.0 - abs(avg_elbow - 117.5) / 25.0)
     knee_score = max(0, 1.0 - abs(avg_knee - 133.0) / 25.0)
     video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0) # Base ~2.74
 
+    is_pro = str(player_tier).lower() in ["pro", "pro elite"]
+
     if total_cnt > 0:
         match_record_rating = 2.0 + (winrate_val / 100.0) * 1.8
-        final_pvna = round((video_bio_rating * 0.4) + (match_record_rating * 0.6), 2)
+        calculated_pvna = (video_bio_rating * 0.4) + (match_record_rating * 0.6)
+        
+        # Nếu chọn hạng Pro Elite và có thành tích tốt (>80% thắng): Kích hoạt thang Pro Elite (4.0 - 5.0)
+        if is_pro and winrate_val >= 80.0:
+            final_pvna = round(4.00 + (winrate_val - 80.0) * 0.05 + (video_bio_rating - 2.0) * 0.2, 2)
+        else:
+            final_pvna = round(calculated_pvna, 2)
     else:
         final_pvna = round(video_bio_rating, 2)
 
-    composite_score_100 = round(((final_pvna - 2.0) / 2.0) * 100, 1)
+    composite_score_100 = round(((final_pvna - 2.0) / 3.0) * 100, 1)
 
     player_id = "PICKLE-AI-PLAYER-V3"
     rating_str = f"{final_pvna:.2f} PVNA"
 
-    # CHUẨN HÓA CÁCH TÍNH DUPR KHÔNG BỊ NHẢY PHI THỰC TẾ LÊN 6.39
-    is_pro_tier = str(player_tier).lower() in ["pro", "pro elite"]
-    if is_pro_tier and final_pvna >= 4.0:
+    # CHUẨN HÓA CÁCH TÍNH DUPR
+    if is_pro and final_pvna >= 4.0:
         dupr_num = min(7.55, 7.00 + ((final_pvna - 4.0) * 0.8) + 0.25)
     else:
         dupr_num = max(1.0, min(6.0, final_pvna - 0.04))
