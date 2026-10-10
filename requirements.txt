@@ -3,5 +3,5 @@ uvicorn
 opencv-python-headless
 mediapipe
 numpy
-yt-dlp
+yt-dlp>=2026.01.01
 python-multipart
