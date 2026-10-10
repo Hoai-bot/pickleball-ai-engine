@@ -358,14 +358,13 @@ def process_video_async_task(
     avg_elbow = round(float(np.mean(elbow_angles)), 1) if elbow_angles else 112.5
     avg_knee = round(float(np.mean(knee_angles)), 1) if knee_angles else 138.0
 
-    # THUẬT TOÁN HYBRID: 70% VIDEO BIOMECHANICS + 30% MATCH RECORD
+    # THUẬT TOÁN HYBRID: 40% VIDEO BIOMECHANICS + 60% MATCH RECORD
     elbow_score = max(0, 1.0 - abs(avg_elbow - 117.5) / 25.0)
     knee_score = max(0, 1.0 - abs(avg_knee - 133.0) / 25.0)
-    video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0) # ~ 2.74
+    video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0) # Base ~2.74
 
     if total_cnt > 0:
-        # TÍNH THÊM LỊCH SỬ ĐẤU THỰC TẾ (VD: 21/38 THẮNG -> 2.98 PVNA)
-        match_record_rating = 2.0 + (winrate_val / 100.0) * 1.8 # 55.2% -> ~2.993
+        match_record_rating = 2.0 + (winrate_val / 100.0) * 1.8
         final_pvna = round((video_bio_rating * 0.4) + (match_record_rating * 0.6), 2)
     else:
         final_pvna = round(video_bio_rating, 2)
@@ -374,6 +373,14 @@ def process_video_async_task(
 
     player_id = "PICKLE-AI-PLAYER-V3"
     rating_str = f"{final_pvna:.2f} PVNA"
+
+    # CHUẨN HÓA CÁCH TÍNH DUPR KHÔNG BỊ NHẢY PHI THỰC TẾ LÊN 6.39
+    is_pro_tier = str(player_tier).lower() in ["pro", "pro elite"]
+    if is_pro_tier and final_pvna >= 4.0:
+        dupr_num = min(7.55, 7.00 + ((final_pvna - 4.0) * 0.8) + 0.25)
+    else:
+        dupr_num = max(1.0, min(6.0, final_pvna - 0.04))
+    dupr_str = f"DUPR {dupr_num:.2f}"
 
     signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%")
     video_src_text = t["source_rtsp"] if clean_rtsp else (t["source_url"] if clean_url else t["source_file"])
@@ -386,6 +393,7 @@ def process_video_async_task(
             "video_source": video_src_text,
             "duration_sec": duration_sec,
             "calculated_rating": rating_str,
+            "dupr_rating": dupr_str,
             "tournament_tier": tier_labels.get(str(player_tier).lower(), "Intermediate / Trung cấp"),
             "homography_calibration": "ENABLED (Auto-Sorted 2D)" if src_homography_pts else "DISABLED (Standard Mode)",
             "player_visual_profile": {
@@ -416,6 +424,7 @@ def process_video_async_task(
                 "status": "APPROVED_BY_AI",
                 "player_id": player_id,
                 "rating": rating_str,
+                "dupr": dupr_str,
                 "tier": tier_labels.get(str(player_tier).lower(), "Intermediate / Trung cấp"),
                 "signature": signature
             }
