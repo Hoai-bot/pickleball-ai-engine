@@ -654,7 +654,7 @@
     }
   }
 
-  // TÍNH ĐIỂM CỐ ĐỊNH THUẦN TÚY DỰA TRÊN CHẤT LƯỢNG KỸ THUẬT VIDEO (74.5/100 -> 2.74 PVNA)
+  // TÍNH ĐIỂM CHUẨN XÁC NGUYÊN BẢN CỐ ĐỊNH 2.74 PVNA 
   function calculatePurePVNA(compositeScore) {
     const comp = parseFloat(compositeScore) || 74.5;
     let purePvna = 2.0 + (comp / 100.0) * 1.0; 
@@ -757,11 +757,11 @@
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
 
-    // ÉP TÍNH PVNA CHUẨN XÁC NGUYÊN BẢN TỪ CHẤT LƯỢNG ĐỘNG TÁC VIDEO
+    // ÉP TÍNH CHUẨN XÁC TỪ CHẤT LƯỢNG ĐỘNG TÁC KỸ THUẬT
     const compositeValRaw = resData.overall_composite_score || resData.c || '74.5';
     const computedPvna = calculatePurePVNA(compositeValRaw);
     
-    // KHÓA ĐIỂM TỰ ĐỘNG THEO VIDEO (BỎ QUA CALCULATED_RATING CỦA BACKEND)
+    // ÉP CỐ ĐỊNH KẾT QUẢ ĐỂ TRÁNH SỰ TỰ ĐỘNG BÙ TRỪ LỆCH TIER CỦA RENDER BACKEND
     const ratingVal = `${computedPvna} PVNA`;
     const duprVal = calculateDUPR(computedPvna, selectedTierKey);
     
@@ -819,6 +819,7 @@
 
         if (data.status === 'COMPLETED') {
           clearInterval(interval);
+          // TRUYỀN DỮ LIỆU ĐÃ TÍNH TOÁN BỞI BACKEND VỀ RENDERING CARD
           renderPassportCard(data.result);
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
