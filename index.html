@@ -654,11 +654,9 @@
     }
   }
 
-  // TÍNH ĐIỂM CỐ ĐỊNH THUẦN TÚY DỰA TRÊN CHẤT LƯỢNG KỸ THUẬT VIDEO
-  // Loại bỏ hoàn toàn sự can thiệp của Phân hạng đăng ký
+  // TÍNH ĐIỂM CỐ ĐỊNH THUẦN TÚY DỰA TRÊN CHẤT LƯỢNG KỸ THUẬT VIDEO (74.5/100 -> 2.74 PVNA)
   function calculatePurePVNA(compositeScore) {
     const comp = parseFloat(compositeScore) || 74.5;
-    // Điểm động tác kỹ thuật 74.5/100 -> Cố định 2.74 PVNA (không lệch giữa Social/Open)
     let purePvna = 2.0 + (comp / 100.0) * 1.0; 
     return purePvna.toFixed(2);
   }
@@ -759,10 +757,11 @@
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
 
-    // ÉP TÍNH PVNA CHUẨN XÁC NGUYÊN BẢN TỪ CHẤT LƯỢNG ĐỘNG TÁC
+    // ÉP TÍNH PVNA CHUẨN XÁC NGUYÊN BẢN TỪ CHẤT LƯỢNG ĐỘNG TÁC VIDEO
     const compositeValRaw = resData.overall_composite_score || resData.c || '74.5';
     const computedPvna = calculatePurePVNA(compositeValRaw);
     
+    // KHÓA ĐIỂM TỰ ĐỘNG THEO VIDEO (BỎ QUA CALCULATED_RATING CỦA BACKEND)
     const ratingVal = `${computedPvna} PVNA`;
     const duprVal = calculateDUPR(computedPvna, selectedTierKey);
     
