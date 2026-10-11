@@ -112,24 +112,34 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         if "&si=" in clean_url:
             clean_url = clean_url.split("&si=")[0]
 
-        # Cấu hình mới bổ sung giả lập Trình duyệt & Client Android để vượt Anti-Bot YouTube
+        # Cấu hình đa luồng bypass Anti-Bot & giải mã mã hóa mới của YouTube
         ydl_opts = {
-            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]/best[height<=720]',
+            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
             'overwrites': True,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'ignoreerrors': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'referer': 'https://www.youtube.com/',
+            'http_headers': {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web']
+                    'player_client': ['android', 'ios', 'web', 'mweb'],
+                    'player_skip': ['webpage', 'configs']
                 }
             }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
-        return output_path
+            
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+            return output_path
+        return None
     except Exception as e:
         print(f"❌ Download Error: {e}")
         return None
