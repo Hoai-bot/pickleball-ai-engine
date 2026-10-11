@@ -112,14 +112,20 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         if "&si=" in clean_url:
             clean_url = clean_url.split("&si=")[0]
 
+        # Cấu hình mới bổ sung giả lập Trình duyệt & Client Android để vượt Anti-Bot YouTube
         ydl_opts = {
-            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]',
+            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]/best[height<=720]',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
             'overwrites': True,
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web']
+                }
+            }
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
@@ -361,7 +367,7 @@ def process_video_async_task(
     # THUẬT TOÁN HYBRID V3.6.5 NÂNG CẤP ĐỘNG
     elbow_score = max(0, 1.0 - abs(avg_elbow - 117.5) / 25.0)
     knee_score = max(0, 1.0 - abs(avg_knee - 133.0) / 25.0)
-    video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0) # Base ~2.74
+    video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0)
 
     is_pro = str(player_tier).lower() in ["pro", "pro elite"]
 
@@ -369,7 +375,6 @@ def process_video_async_task(
         match_record_rating = 2.0 + (winrate_val / 100.0) * 1.8
         calculated_pvna = (video_bio_rating * 0.4) + (match_record_rating * 0.6)
         
-        # Nếu chọn hạng Pro Elite và có thành tích tốt (>80% thắng): Kích hoạt thang Pro Elite (4.0 - 5.0)
         if is_pro and winrate_val >= 80.0:
             final_pvna = round(4.00 + (winrate_val - 80.0) * 0.05 + (video_bio_rating - 2.0) * 0.2, 2)
         else:
@@ -382,7 +387,6 @@ def process_video_async_task(
     player_id = "PICKLE-AI-PLAYER-V3"
     rating_str = f"{final_pvna:.2f} PVNA"
 
-    # CHUẨN HÓA CÁCH TÍNH DUPR
     if is_pro and final_pvna >= 4.0:
         dupr_num = min(7.55, 7.00 + ((final_pvna - 4.0) * 0.8) + 0.25)
     else:
