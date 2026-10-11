@@ -112,34 +112,23 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
         if "&si=" in clean_url:
             clean_url = clean_url.split("&si=")[0]
 
-        # Cấu hình đa luồng bypass Anti-Bot & giải mã mã hóa mới của YouTube
         ydl_opts = {
-            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best',
+            'format': 'bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720]',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
             'overwrites': True,
             'nocheckcertificate': True,
-            'ignoreerrors': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'referer': 'https://www.youtube.com/',
-            'http_headers': {
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'web', 'mweb'],
-                    'player_skip': ['webpage', 'configs']
-                }
-            }
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         }
+        
+        # Tự động gắn cookies.txt nếu có sẵn tệp xác thực trong dự án
+        if os.path.exists("cookies.txt"):
+            ydl_opts['cookiefile'] = 'cookies.txt'
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([clean_url])
-            
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-            return output_path
-        return None
+        return output_path
     except Exception as e:
         print(f"❌ Download Error: {e}")
         return None
@@ -374,34 +363,20 @@ def process_video_async_task(
     avg_elbow = round(float(np.mean(elbow_angles)), 1) if elbow_angles else 112.5
     avg_knee = round(float(np.mean(knee_angles)), 1) if knee_angles else 138.0
 
-    # THUẬT TOÁN HYBRID V3.6.5 NÂNG CẤP ĐỘNG
     elbow_score = max(0, 1.0 - abs(avg_elbow - 117.5) / 25.0)
     knee_score = max(0, 1.0 - abs(avg_knee - 133.0) / 25.0)
     video_bio_rating = 2.0 + ((elbow_score * 0.5 + knee_score * 0.5) * 1.0)
 
-    is_pro = str(player_tier).lower() in ["pro", "pro elite"]
-
     if total_cnt > 0:
         match_record_rating = 2.0 + (winrate_val / 100.0) * 1.8
-        calculated_pvna = (video_bio_rating * 0.4) + (match_record_rating * 0.6)
-        
-        if is_pro and winrate_val >= 80.0:
-            final_pvna = round(4.00 + (winrate_val - 80.0) * 0.05 + (video_bio_rating - 2.0) * 0.2, 2)
-        else:
-            final_pvna = round(calculated_pvna, 2)
+        final_pvna = round((video_bio_rating * 0.4) + (match_record_rating * 0.6), 2)
     else:
         final_pvna = round(video_bio_rating, 2)
 
-    composite_score_100 = round(((final_pvna - 2.0) / 3.0) * 100, 1)
+    composite_score_100 = round(((final_pvna - 2.0) / 2.0) * 100, 1)
 
     player_id = "PICKLE-AI-PLAYER-V3"
     rating_str = f"{final_pvna:.2f} PVNA"
-
-    if is_pro and final_pvna >= 4.0:
-        dupr_num = min(7.55, 7.00 + ((final_pvna - 4.0) * 0.8) + 0.25)
-    else:
-        dupr_num = max(1.0, min(6.0, final_pvna - 0.04))
-    dupr_str = f"DUPR {dupr_num:.2f}"
 
     signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%")
     video_src_text = t["source_rtsp"] if clean_rtsp else (t["source_url"] if clean_url else t["source_file"])
@@ -414,7 +389,6 @@ def process_video_async_task(
             "video_source": video_src_text,
             "duration_sec": duration_sec,
             "calculated_rating": rating_str,
-            "dupr_rating": dupr_str,
             "tournament_tier": tier_labels.get(str(player_tier).lower(), "Intermediate / Trung cấp"),
             "homography_calibration": "ENABLED (Auto-Sorted 2D)" if src_homography_pts else "DISABLED (Standard Mode)",
             "player_visual_profile": {
@@ -445,7 +419,6 @@ def process_video_async_task(
                 "status": "APPROVED_BY_AI",
                 "player_id": player_id,
                 "rating": rating_str,
-                "dupr": dupr_str,
                 "tier": tier_labels.get(str(player_tier).lower(), "Intermediate / Trung cấp"),
                 "signature": signature
             }
