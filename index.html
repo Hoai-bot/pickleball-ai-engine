@@ -333,11 +333,12 @@
       <h3 class="card-title" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5" data-en="⚡ AI RATING VERIFICATION - PVNA V3.6.5">
         ⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5
       </h3>
-      <div class="card-subtitle" data-vi="Hệ thống chấm điểm kỹ thuật Biomechanics & Kiểm định hạng đấu tự động." data-en="Biomechanics rating engine & automatic tournament tier verification.">
-        Hệ thống chấm điểm kỹ thuật Biomechanics & Kiểm định hạng đấu tự động.
+      <div class="card-subtitle" data-vi="Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu." data-en="Select preset traits or click '+ Custom' for precise AI tracking.">
+        Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu.
       </div>
 
       <form id="rating-form">
+        <!-- 1. Video -->
         <div class="form-group">
           <label data-vi="1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):" data-en="1. Video Input (5-15s recommended):">1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):</label>
           <div class="input-mode-tabs">
@@ -361,6 +362,7 @@
           </div>
         </div>
 
+        <!-- 2. Vị trí sân -->
         <div class="form-group">
           <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
           <div class="badge-group" id="group-court-pos">
@@ -371,6 +373,7 @@
           </div>
         </div>
 
+        <!-- 3. Áo -->
         <div class="form-group">
           <label data-vi="3. Màu Áo Thi Đấu:" data-en="3. Shirt Color:">3. Màu Áo Thi Đấu:</label>
           <div class="badge-group" id="group-shirt">
@@ -378,35 +381,71 @@
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đen')" data-vi="Áo Đen" data-en="Black Shirt">Áo Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đỏ')" data-vi="Áo Đỏ" data-en="Red Shirt">Áo Đỏ</span>
             <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Xanh')" data-vi="Áo Xanh" data-en="Blue Shirt">Áo Xanh</span>
-            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập" data-en="✏️ + Custom">✏️ + Tự Nhập</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập Khác" data-en="✏️ + Custom Shirt">✏️ + Tự Nhập Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-shirt">
-            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo...">
+            <input type="text" id="input-custom-shirt" placeholder="Nhập màu/họa tiết áo chi tiết (VD: Áo Vàng Chấm Bi)...">
           </div>
         </div>
 
+        <!-- 4. Quần -->
         <div class="form-group">
           <label data-vi="4. Màu Quần / Váy:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy:</label>
           <div class="badge-group" id="group-pants">
             <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
             <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
-            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập" data-en="✏️ + Custom">✏️ + Tự Nhập</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập Khác" data-en="✏️ + Custom Shorts">✏️ + Tự Nhập Khác</span>
           </div>
           <div class="custom-input-box" id="custom-box-group-pants">
-            <input type="text" id="input-custom-pants" placeholder="Nhập màu quần...">
+            <input type="text" id="input-custom-pants" placeholder="Nhập màu/kiểu quần (VD: Váy Xanh Than, Quần Rằn Ri)...">
           </div>
         </div>
 
+        <!-- 5. Giày -->
         <div class="form-group">
-          <label data-vi="5. Thể Hình (Body Type):" data-en="5. Body Build:">5. Thể Hình (Body Type):</label>
-          <div class="badge-group" id="group-body">
-            <span class="badge-opt active" onclick="selectBadge('group-body', this, 'athletic')" data-vi="Thể Thao / Cân Cối" data-en="Athletic">Thể Thao / Cân Đối</span>
-            <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn" data-en="Slim">Thon Gọn</span>
-            <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
+          <label data-vi="5. Màu Giày Thi Đấu:" data-en="5. Shoe Color:">5. Màu Giày Thi Đấu:</label>
+          <div class="badge-group" id="group-shoes">
+            <span class="badge-opt active" onclick="selectBadge('group-shoes', this, 'Giày Trắng')" data-vi="Giày Trắng" data-en="White Shoes">Giày Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đen')" data-vi="Giày Đen" data-en="Black Shoes">Giày Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shoes', this, 'Giày Đỏ/Cam')" data-vi="Giày Đỏ/Cam" data-en="Red/Orange Shoes">Giày Đỏ/Cam</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shoes', this)" data-vi="✏️ + Tự Nhập Khác" data-en="✏️ + Custom Shoes">✏️ + Tự Nhập Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-shoes">
+            <input type="text" id="input-custom-shoes" placeholder="Nhập màu giày (VD: Giày Tím Neon, Giày Xanh Chuối)...">
           </div>
         </div>
 
+        <!-- 6. Mũ / Nón / Phụ kiện đầu -->
+        <div class="form-group">
+          <label data-vi="6. Mũ / Nón / Phụ Kiện Đầu:" data-en="6. Headwear / Cap:">6. Mũ / Nón / Phụ Kiện Đầu:</label>
+          <div class="badge-group" id="group-headwear">
+            <span class="badge-opt active" onclick="selectBadge('group-headwear', this, 'Không Đội Mũ')" data-vi="Không Đội Mũ" data-en="No Cap">Không Đội Mũ</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Trắng')" data-vi="Mũ Lưỡi Trai Trắng" data-en="White Cap">Mũ Lưỡi Trai Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-headwear', this, 'Mũ Lưỡi Trai Đen')" data-vi="Mũ Lưỡi Trai Đen" data-en="Black Cap">Mũ Lưỡi Trai Đen</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-headwear', this)" data-vi="✏️ + Tự Nhập Khác" data-en="✏️ + Custom Cap">✏️ + Tự Nhập Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-headwear">
+            <input type="text" id="input-custom-headwear" placeholder="Nhập phụ kiện đầu (VD: Băng Trán Đỏ, Khăn Trùm Đầu)...">
+          </div>
+        </div>
+
+        <!-- 7. Thể hình dáng người -->
+        <div class="form-group">
+          <label data-vi="7. Thể Hình / Dáng Người (Body Type):" data-en="7. Body Build / Physical Traits:">7. Thể Hình / Dáng Người (Body Type):</label>
+          <div class="badge-group" id="group-body">
+            <span class="badge-opt active" onclick="selectBadge('group-body', this, 'athletic')" data-vi="Thể Thao / Cân Đối" data-en="Athletic">Thể Thao / Cân Đối</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn / Cao" data-en="Slim / Tall">Thon Gọn / Cao</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'heavy')" data-vi="Đậm Người / Đầy Đặn" data-en="Heavy / Robust">Đậm Người / Đầy Đặn</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-body', this)" data-vi="✏️ + Tự Nhập Khác" data-en="✏️ + Custom Body">✏️ + Tự Nhập Khác</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-body">
+            <input type="text" id="input-custom-body" placeholder="Nhập mô tả thể hình (VD: Cao 1m85 Đô Con, Nhỏ Con Nhanh Nhẹn)...">
+          </div>
+        </div>
+
+        <!-- 8. Hạng & Tỷ lệ thắng -->
         <div class="form-group grid-2">
           <div>
             <label data-vi="Hạng Đăng Ký Giải:" data-en="Register Tier:">Hạng Đăng Ký Giải:</label>
@@ -432,6 +471,7 @@
       </form>
     </div>
 
+    <!-- Status Box -->
     <div class="status-box" id="statusBox">
       <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:22px; margin-bottom:10px;"></i>
       <div id="statusText" data-vi="AI đang định vị khớp sinh học & chấm điểm Biomechanics (3 - 7 giây)..." data-en="AI calculating biomechanics & rating (3-7s)...">
@@ -439,6 +479,7 @@
       </div>
     </div>
 
+    <!-- Passport Card -->
     <div class="passport-card" id="passportCard">
       <div class="passport-header">
         <div>
@@ -496,14 +537,17 @@
     court_pos: 'near_right',
     shirt: 'Áo Trắng',
     pants: 'Quần Đen',
-    shoes: 'Giày Thể Thao',
+    shoes: 'Giày Trắng',
     headwear: 'Không Đội Mũ',
     body: 'athletic'
   };
 
   const isCustomActive = {
     shirt: false,
-    pants: false
+    pants: false,
+    shoes: false,
+    headwear: false,
+    body: false
   };
 
   let lastPassportData = null;
@@ -545,6 +589,8 @@
     if (groupId === 'group-court-pos') selectedValues.court_pos = val;
     if (groupId === 'group-shirt') selectedValues.shirt = val;
     if (groupId === 'group-pants') selectedValues.pants = val;
+    if (groupId === 'group-shoes') selectedValues.shoes = val;
+    if (groupId === 'group-headwear') selectedValues.headwear = val;
     if (groupId === 'group-body') selectedValues.body = val;
   }
 
@@ -578,9 +624,19 @@
   function getSelectedVisualProfile(lang) {
     const posEl = document.querySelector('#group-court-pos .badge-opt.active');
     const posStr = posEl ? (posEl.getAttribute(`data-${lang}`) || posEl.innerText) : 'Sân Gần - Bên Phải';
+
     const shirtStr = getActiveBadgeText('group-shirt', 'input-custom-shirt', isCustomActive.shirt);
     const pantsStr = getActiveBadgeText('group-pants', 'input-custom-pants', isCustomActive.pants);
-    return `${posStr} | ${shirtStr} | ${pantsStr}`;
+    const shoesStr = getActiveBadgeText('group-shoes', 'input-custom-shoes', isCustomActive.shoes);
+    const headStr = getActiveBadgeText('group-headwear', 'input-custom-headwear', isCustomActive.headwear);
+    const bodyStr = getActiveBadgeText('group-body', 'input-custom-body', isCustomActive.body);
+
+    let parts = [posStr, shirtStr, pantsStr];
+    if (shoesStr) parts.push(shoesStr);
+    if (headStr && headStr !== 'Không Đội Mũ' && headStr !== 'No Cap') parts.push(headStr);
+    if (bodyStr) parts.push(bodyStr);
+
+    return parts.join(' | ');
   }
 
   function getTierLabel(tierKey, lang) {
@@ -648,11 +704,16 @@
 
     const shirtVal = getActiveBadgeText('group-shirt', 'input-custom-shirt', isCustomActive.shirt);
     const pantsVal = getActiveBadgeText('group-pants', 'input-custom-pants', isCustomActive.pants);
+    const shoesVal = getActiveBadgeText('group-shoes', 'input-custom-shoes', isCustomActive.shoes);
+    const headwearVal = getActiveBadgeText('group-headwear', 'input-custom-headwear', isCustomActive.headwear);
+    const bodyVal = isCustomActive.body 
+      ? document.getElementById('input-custom-body').value.trim() 
+      : selectedValues.body;
 
     formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
-    formData.append('shoe_color', 'Giày Thể Thao');
-    formData.append('headwear', 'None');
-    formData.append('body_type', selectedValues.body);
+    formData.append('shoe_color', shoesVal);
+    formData.append('headwear', headwearVal);
+    formData.append('body_type', bodyVal || 'athletic');
     formData.append('player_tier', document.getElementById('player_tier').value);
     formData.append('match_wins', document.getElementById('match_wins').value);
     formData.append('total_matches', document.getElementById('total_matches').value);
