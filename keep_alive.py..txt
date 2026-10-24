@@ -1,0 +1,26 @@
+import requests
+import time
+from datetime import datetime
+
+# Đường dẫn root API Render của bạn
+URL = "https://pickleball-ai-engine.onrender.com/"
+
+print("🚀 Đã kích hoạt script giữ server Render thức 24/7...")
+
+while True:
+    try:
+        # Gửi request GET tới server
+        response = requests.get(URL, timeout=10)
+        now = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+        
+        if response.status_code == 200:
+            print(f"[{now}] ✅ Ping thành công! Server đang hoạt động (Status 200).")
+        else:
+            print(f"[{now}] ⚠️ Server phản hồi trạng thái: {response.status_code}")
+            
+    except Exception as e:
+        now = datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
+        print(f"[{now}] ❌ Lỗi kết nối: {e}")
+    
+    # Nghỉ 10 phút (600 giây) rồi mới gửi lại
+    time.sleep(600)

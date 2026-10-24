@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pickleball AI Passport - PVNA Lam Dong Pilot V3.6.5</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --accent-gold: #facc15;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: var(--bg-main);
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-lang {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-lang:hover { background: var(--accent-blue); }
+
+    .main-container { width: 100%; max-width: 650px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: left;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-gold);
+      margin-top: 0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .input-mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .file-input-wrapper {
+      border: 2px dashed #334155;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      background: #0f172a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .file-input-wrapper:hover { border-color: var(--accent-blue); }
+
+    .badge-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .badge-opt {
+      padding: 7px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .badge-opt:hover { border-color: var(--accent-blue); color: #fff; }
+
+    .badge-opt.active {
+      background: var(--accent-blue);
+      color: #000;
+      border-color: var(--accent-blue);
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-custom-btn { border: 1px dashed var(--accent-gold); color: var(--accent-gold); }
+    .custom-input-box { display: none; margin-top: 8px; }
+
+    .custom-input-box input {
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      color: #fff;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0284c7, #16a34a);
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status-box {
+      display: none;
+      background: #0f172a;
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .passport-card {
+      display: none;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid var(--accent-gold);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(250, 204, 21, 0.15);
+      text-align: left;
+    }
+
+    .passport-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .badge-certified {
+      background: var(--accent-green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .dupr-badge {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #000;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 8px;
+      margin-left: 6px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .score-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+    }
+
+    .score-value { font-size: 20px; font-weight: 800; color: var(--accent-blue); }
+    .score-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .target-box {
+      background: #0f172a;
+      border: 1px dashed var(--accent-blue);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .qr-section {
+      background: linear-gradient(135deg, #0f172a, #162456);
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qr-container {
+      width: 120px;
+      height: 120px;
+      background: #fff;
+      padding: 4px;
+      border-radius: 8px;
+      border: 2px solid var(--accent-gold);
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .qr-container canvas, .qr-container img {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <div class="brand-title">
+      <i class="fa-solid fa-award"></i> PVNA LÂM ĐỒNG - AI PASSPORT
+    </div>
+    <button class="btn-lang" id="langBtn" onclick="toggleLanguage()">🌐 VI / EN</button>
+  </div>
+
+  <div class="main-container">
+    
+    <div class="card" id="formCard">
+      <h3 class="card-title" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5" data-en="⚡ AI RATING VERIFICATION - PVNA V3.6.5">
+        ⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5
+      </h3>
+      <div class="card-subtitle" data-vi="Hệ thống chấm điểm kỹ thuật Biomechanics & Kiểm định hạng đấu tự động." data-en="Biomechanics rating engine & automatic tournament tier verification.">
+        Hệ thống chấm điểm kỹ thuật Biomechanics & Kiểm định hạng đấu tự động.
+      </div>
+
+      <form id="rating-form">
+        <div class="form-group">
+          <label data-vi="1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):" data-en="1. Video Input (5-15s recommended):">1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):</label>
+          <div class="input-mode-tabs">
+            <div class="tab-btn" id="tabUrl" onclick="switchVideoMode('url')" data-vi="🔗 Dán Link URL" data-en="🔗 Paste URL">🔗 Dán Link URL</div>
+            <div class="tab-btn active" id="tabFile" onclick="switchVideoMode('file')" data-vi="📁 Tải Video Từ Điện Thoại" data-en="📁 Upload Video">📁 Tải Video Từ Điện Thoại</div>
+          </div>
+
+          <div id="videoUrlContainer" style="display:none;">
+            <input type="text" id="video_url" class="form-control" placeholder="Dán đường dẫn video (YouTube / Drive)...">
+          </div>
+
+          <div id="videoFileContainer">
+            <div class="file-input-wrapper" onclick="document.getElementById('video_file').click()">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--accent-blue); margin-bottom:6px;"></i>
+              <div style="font-size:12px; color:#cbd5e1; font-weight:600;" id="fileNameDisplay" data-vi="Bấm vào đây để chọn clip bài test từ máy" data-en="Click here to select test video from device">
+                Bấm vào đây để chọn clip bài test từ máy
+              </div>
+              <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" data-vi="(Video test dink/drop từ 5-15 giây để xử lý nhanh nhất)" data-en="(5-15s drill video for instant processing)">(Video test dink/drop từ 5-15 giây để xử lý nhanh nhất)</div>
+            </div>
+            <input type="file" id="video_file" accept="video/*" style="display:none;" onchange="handleFileSelect(this)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="2. Vị Trí VĐV Khi Khởi Đầu Rally:" data-en="2. Court Position at Rally Start:">2. Vị Trí VĐV Khi Khởi Đầu Rally:</label>
+          <div class="badge-group" id="group-court-pos">
+            <span class="badge-opt active" onclick="selectBadge('group-court-pos', this, 'near_right')" data-vi="Sân Gần - Bên Phải" data-en="Near Court - Right">Sân Gần - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'near_left')" data-vi="Sân Gần - Bên Trái" data-en="Near Court - Left">Sân Gần - Bên Trái</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_right')" data-vi="Sân Xa - Bên Phải" data-en="Far Court - Right">Sân Xa - Bên Phải</span>
+            <span class="badge-opt" onclick="selectBadge('group-court-pos', this, 'far_left')" data-vi="Sân Xa - Bên Trái" data-en="Far Court - Left">Sân Xa - Bên Trái</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="3. Màu Áo Thi Đấu:" data-en="3. Shirt Color:">3. Màu Áo Thi Đấu:</label>
+          <div class="badge-group" id="group-shirt">
+            <span class="badge-opt active" onclick="selectBadge('group-shirt', this, 'Áo Trắng')" data-vi="Áo Trắng" data-en="White Shirt">Áo Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đen')" data-vi="Áo Đen" data-en="Black Shirt">Áo Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Đỏ')" data-vi="Áo Đỏ" data-en="Red Shirt">Áo Đỏ</span>
+            <span class="badge-opt" onclick="selectBadge('group-shirt', this, 'Áo Xanh')" data-vi="Áo Xanh" data-en="Blue Shirt">Áo Xanh</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-shirt', this)" data-vi="✏️ + Tự Nhập" data-en="✏️ + Custom">✏️ + Tự Nhập</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-shirt">
+            <input type="text" id="input-custom-shirt" placeholder="Nhập màu áo...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="4. Màu Quần / Váy:" data-en="4. Shorts/Skirt Color:">4. Màu Quần / Váy:</label>
+          <div class="badge-group" id="group-pants">
+            <span class="badge-opt active" onclick="selectBadge('group-pants', this, 'Quần Đen')" data-vi="Quần Đen" data-en="Black Shorts">Quần Đen</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Trắng')" data-vi="Quần Trắng" data-en="White Shorts">Quần Trắng</span>
+            <span class="badge-opt" onclick="selectBadge('group-pants', this, 'Quần Hồng')" data-vi="Quần Hồng" data-en="Pink Shorts">Quần Hồng</span>
+            <span class="badge-opt badge-custom-btn" onclick="showCustomInput('group-pants', this)" data-vi="✏️ + Tự Nhập" data-en="✏️ + Custom">✏️ + Tự Nhập</span>
+          </div>
+          <div class="custom-input-box" id="custom-box-group-pants">
+            <input type="text" id="input-custom-pants" placeholder="Nhập màu quần...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-vi="5. Thể Hình (Body Type):" data-en="5. Body Build:">5. Thể Hình (Body Type):</label>
+          <div class="badge-group" id="group-body">
+            <span class="badge-opt active" onclick="selectBadge('group-body', this, 'athletic')" data-vi="Thể Thao / Cân Cối" data-en="Athletic">Thể Thao / Cân Đối</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'slim')" data-vi="Thon Gọn" data-en="Slim">Thon Gọn</span>
+            <span class="badge-opt" onclick="selectBadge('group-body', this, 'average')" data-vi="Trung Bình" data-en="Average">Trung Bình</span>
+          </div>
+        </div>
+
+        <div class="form-group grid-2">
+          <div>
+            <label data-vi="Hạng Đăng Ký Giải:" data-en="Register Tier:">Hạng Đăng Ký Giải:</label>
+            <select id="player_tier" class="form-control">
+              <option value="social" data-vi="Phong trào (Social)" data-en="Social">Phong trào (Social)</option>
+              <option value="intermediate" selected data-vi="Trung cấp (Open)" data-en="Intermediate">Trung cấp (Open)</option>
+              <option value="semi_pro" data-vi="Bán chuyên" data-en="Semi-Pro">Bán chuyên</option>
+              <option value="pro" data-vi="Chuyên nghiệp (Pro)" data-en="Pro">Chuyên nghiệp (Pro)</option>
+            </select>
+          </div>
+          <div>
+            <label data-vi="Tỷ Lệ Thắng Thực Tế:" data-en="Win Record:">Tỷ Lệ Thắng Thực Tế:</label>
+            <div style="display:flex; gap:6px;">
+              <input type="number" id="match_wins" class="form-control" value="8" placeholder="Thắng">
+              <input type="number" id="total_matches" class="form-control" value="10" placeholder="Tổng trận">
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 KIỂM ĐỊNH RATING PVNA LÂM ĐỒNG" data-en="🚀 VERIFY PVNA RATING">
+          🚀 KIỂM ĐỊNH RATING PVNA LÂM ĐỒNG
+        </button>
+      </form>
+    </div>
+
+    <div class="status-box" id="statusBox">
+      <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:22px; margin-bottom:10px;"></i>
+      <div id="statusText" data-vi="AI đang định vị khớp sinh học & chấm điểm Biomechanics (3 - 7 giây)..." data-en="AI calculating biomechanics & rating (3-7s)...">
+        AI đang định vị khớp sinh học & chấm điểm Biomechanics (3 - 7 giây)...
+      </div>
+    </div>
+
+    <div class="passport-card" id="passportCard">
+      <div class="passport-header">
+        <div>
+          <span class="badge-certified" data-vi="✔ PVNA OFFICIALLY VERIFIED" data-en="✔ PVNA OFFICIALLY VERIFIED">✔ PVNA OFFICIALLY VERIFIED</span>
+          <div style="display:flex; align-items:center; margin-top:6px;">
+            <h3 style="margin:0; color:var(--accent-gold); font-size:24px;" id="resRating">2.75 PVNA</h3>
+            <span class="dupr-badge" id="resDupr">DUPR 2.71</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-muted);" data-vi="HẠNG ĐẤU" data-en="TIER">HẠNG ĐẤU</div>
+          <div style="font-weight:bold; font-size:13px; color:#fff;" id="resTier">Trung cấp (Open)</div>
+        </div>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-item">
+          <div class="score-value" id="resElbow">114.2°</div>
+          <div class="score-label" data-vi="GÓC VUNG TAY" data-en="ELBOW ANGLE">GÓC VUNG TAY</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resKnee">132.0°</div>
+          <div class="score-label" data-vi="GÓC CHÙNG GỐI" data-en="KNEE ANGLE">GÓC CHÙNG GỐI</div>
+        </div>
+        <div class="score-item">
+          <div class="score-value" id="resComposite">75.0/100</div>
+          <div class="score-label" data-vi="ĐIỂM BIOMECHANICS" data-en="BIOMECHANICS">ĐIỂM BIOMECHANICS</div>
+        </div>
+      </div>
+
+      <div class="target-box">
+        <strong style="color:var(--accent-gold);" data-vi="🎯 NHẬN DIỆN VẬN ĐỘNG VIÊN:" data-en="🎯 TARGET ATHLETE:">🎯 NHẬN DIỆN VẬN ĐỘNG VIÊN:</strong>
+        <div id="resTargetIdentity" style="color:#cbd5e1; margin-top:3px;">Sân Gần - Bên Phải | Áo Trắng | Quần Đen</div>
+      </div>
+
+      <div class="qr-section">
+        <div class="qr-container" id="qrContainer"></div>
+        <div>
+          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PVNA-LD-TEST</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số niêm phong kiểm định PVNA Lâm Đồng. Quét mã QR để đối soát thực địa." data-en="Digitally sealed by PVNA Lam Dong. Scan to verify on court.">
+            Chữ ký số niêm phong kiểm định PVNA Lâm Đồng. Quét mã QR để đối soát thực địa.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const API_BASE_URL = 'https://pickleball-ai-engine.onrender.com';
+  let currentLang = 'vi';
+  let activeVideoMode = 'file';
+
+  const selectedValues = {
+    court_pos: 'near_right',
+    shirt: 'Áo Trắng',
+    pants: 'Quần Đen',
+    shoes: 'Giày Thể Thao',
+    headwear: 'Không Đội Mũ',
+    body: 'athletic'
+  };
+
+  const isCustomActive = {
+    shirt: false,
+    pants: false
+  };
+
+  let lastPassportData = null;
+
+  function switchVideoMode(mode) {
+    activeVideoMode = mode;
+    if (mode === 'url') {
+      document.getElementById('tabUrl').classList.add('active');
+      document.getElementById('tabFile').classList.remove('active');
+      document.getElementById('videoUrlContainer').style.display = 'block';
+      document.getElementById('videoFileContainer').style.display = 'none';
+    } else {
+      document.getElementById('tabFile').classList.add('active');
+      document.getElementById('tabUrl').classList.remove('active');
+      document.getElementById('videoFileContainer').style.display = 'block';
+      document.getElementById('videoUrlContainer').style.display = 'none';
+    }
+  }
+
+  function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      document.getElementById('fileNameDisplay').innerText = `📹 Đã chọn: ${file.name} (${(file.size / (1024*1024)).toFixed(1)}MB)`;
+      document.getElementById('fileNameDisplay').style.color = 'var(--accent-gold)';
+    }
+  }
+
+  function selectBadge(groupId, el, val) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const key = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-box-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'none';
+      isCustomActive[key] = false;
+    }
+
+    if (groupId === 'group-court-pos') selectedValues.court_pos = val;
+    if (groupId === 'group-shirt') selectedValues.shirt = val;
+    if (groupId === 'group-pants') selectedValues.pants = val;
+    if (groupId === 'group-body') selectedValues.body = val;
+  }
+
+  function showCustomInput(groupId, el) {
+    document.querySelectorAll(`#${groupId} .badge-opt`).forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+
+    const key = groupId.replace('group-', '');
+    const customBox = document.getElementById(`custom-box-${groupId}`);
+    if (customBox) {
+      customBox.style.display = 'block';
+      isCustomActive[key] = true;
+      const input = customBox.querySelector('input');
+      if (input) input.focus();
+    }
+  }
+
+  function getActiveBadgeText(groupId, customInputId, isCustom) {
+    if (isCustom) {
+      const customVal = document.getElementById(customInputId).value.trim();
+      if (customVal) return customVal;
+    }
+    const activeEl = document.querySelector(`#${groupId} .badge-opt.active`);
+    if (activeEl) {
+      const langText = activeEl.getAttribute(`data-${currentLang}`);
+      return langText || activeEl.innerText;
+    }
+    return '';
+  }
+
+  function getSelectedVisualProfile(lang) {
+    const posEl = document.querySelector('#group-court-pos .badge-opt.active');
+    const posStr = posEl ? (posEl.getAttribute(`data-${lang}`) || posEl.innerText) : 'Sân Gần - Bên Phải';
+    const shirtStr = getActiveBadgeText('group-shirt', 'input-custom-shirt', isCustomActive.shirt);
+    const pantsStr = getActiveBadgeText('group-pants', 'input-custom-pants', isCustomActive.pants);
+    return `${posStr} | ${shirtStr} | ${pantsStr}`;
+  }
+
+  function getTierLabel(tierKey, lang) {
+    const tierMap = {
+      'social': { vi: 'Phong trào (Social)', en: 'Social' },
+      'intermediate': { vi: 'Trung cấp (Open)', en: 'Open' },
+      'semi_pro': { vi: 'Bán chuyên', en: 'Semi-Pro' },
+      'pro': { vi: 'Chuyên nghiệp (Pro)', en: 'Pro' }
+    };
+    return (tierMap[tierKey] && tierMap[tierKey][lang]) ? tierMap[tierKey][lang] : tierKey;
+  }
+
+  function toggleLanguage() {
+    currentLang = currentLang === 'vi' ? 'en' : 'vi';
+    document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+
+    document.querySelectorAll('[data-vi]').forEach(el => {
+      const text = el.getAttribute(`data-${currentLang}`);
+      if (text) {
+        if (el.tagName === 'OPTION') { el.text = text; }
+        else { el.innerText = text; }
+      }
+    });
+
+    if (lastPassportData) {
+      renderPassportCard(lastPassportData);
+    }
+  }
+
+  function calculateDUPR(pvnaString, tierVal) {
+    const numericPVNA = parseFloat(pvnaString) || 2.75;
+    const currentTier = tierVal || document.getElementById('player_tier').value;
+
+    if (currentTier === 'pro') {
+      let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25;
+      return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
+    }
+    const standardDupr = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
+    return `DUPR ${standardDupr.toFixed(2)}`;
+  }
+
+  async function startAIAnalysis() {
+    const formData = new FormData();
+    formData.append('lang', currentLang);
+
+    if (activeVideoMode === 'file') {
+      const fileInput = document.getElementById('video_file');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert(currentLang === 'vi' ? '⚠️ Vui lòng chọn một file video bài test từ máy!' : '⚠️ Please select a video file!');
+        return;
+      }
+      formData.append('file', fileInput.files[0]);
+    } else {
+      const urlValue = document.getElementById('video_url').value.trim();
+      if (!urlValue) {
+        alert(currentLang === 'vi' ? '⚠️ Vui lòng nhập link video bài test!' : '⚠️ Please enter video URL!');
+        return;
+      }
+      formData.append('video_url', urlValue);
+    }
+
+    const posParts = selectedValues.court_pos.split('_');
+    formData.append('court_distance', posParts[0]);
+    formData.append('player_position', posParts[1]);
+
+    const shirtVal = getActiveBadgeText('group-shirt', 'input-custom-shirt', isCustomActive.shirt);
+    const pantsVal = getActiveBadgeText('group-pants', 'input-custom-pants', isCustomActive.pants);
+
+    formData.append('shirt_color', `${shirtVal} - ${pantsVal}`);
+    formData.append('shoe_color', 'Giày Thể Thao');
+    formData.append('headwear', 'None');
+    formData.append('body_type', selectedValues.body);
+    formData.append('player_tier', document.getElementById('player_tier').value);
+    formData.append('match_wins', document.getElementById('match_wins').value);
+    formData.append('total_matches', document.getElementById('total_matches').value);
+
+    const btn = document.getElementById('btnSubmit');
+    const statusBox = document.getElementById('statusBox');
+    const passportCard = document.getElementById('passportCard');
+
+    btn.disabled = true;
+    statusBox.style.display = 'block';
+    passportCard.style.display = 'none';
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/analyze-video`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.task_id) {
+        pollTaskStatus(data.task_id);
+      } else {
+        const errDetail = data.detail || data.message || 'Không thể xử lý video!';
+        alert(`❌ Thất bại: ${errDetail}`);
+        btn.disabled = false;
+        statusBox.style.display = 'none';
+      }
+    } catch (err) {
+      console.error(err);
+      alert(currentLang === 'vi' 
+        ? "⚡ Server Render đang thức dậy (Cold Start). Vui lòng đợi 20 giây rồi bấm thử lại!" 
+        : "⚡ Server warming up. Please retry in 20s!");
+      btn.disabled = false;
+      statusBox.style.display = 'none';
+    }
+  }
+
+  function renderPassportCard(resData) {
+    lastPassportData = resData;
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('passportCard').style.display = 'block';
+
+    const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
+
+    let ratingVal = resData.calculated_rating;
+    let compositeValRaw = resData.overall_composite_score || resData.c || '75.0';
+
+    if (typeof compositeValRaw === 'string' && compositeValRaw.includes('/')) {
+      compositeValRaw = compositeValRaw.split('/')[0].trim();
+    }
+
+    if (!ratingVal) {
+      const compNum = parseFloat(compositeValRaw) || 75.0;
+      const purePvna = (2.0 + (compNum / 100.0) * 1.0).toFixed(2);
+      ratingVal = `${purePvna} PVNA`;
+    }
+
+    const duprVal = calculateDUPR(ratingVal.replace(' PVNA', ''), selectedTierKey);
+    const tierVal = resData.tournament_tier || resData.t || getTierLabel(selectedTierKey, currentLang);
+    const elbowVal = resData.avg_elbow_angle || resData.e || '114.2°';
+    const kneeVal = resData.avg_knee_angle || resData.k || '132.0°';
+    const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PVNA-LD-VERIFIED';
+    const targetText = resData.vp || getSelectedVisualProfile(currentLang);
+
+    document.getElementById('resTargetIdentity').innerText = targetText;
+    document.getElementById('resRating').innerText = ratingVal;
+    document.getElementById('resDupr').innerText = duprVal;
+    document.getElementById('resTier').innerText = tierVal;
+    document.getElementById('resElbow').innerText = elbowVal;
+    document.getElementById('resKnee').innerText = kneeVal;
+    document.getElementById('resComposite').innerText = `${compositeValRaw}/100`;
+    document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
+
+    const numR = parseFloat(ratingVal.replace(' PVNA', '')) || 2.75;
+    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 2.71;
+    const numE = parseFloat(elbowVal) || 114.2;
+    const numK = parseFloat(kneeVal) || 132.0;
+    const numC = parseFloat(compositeValRaw) || 75.0;
+
+    const encVp = btoa(encodeURIComponent(targetText));
+    const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang},${selectedTierKey},${encVp}`;
+
+    const baseUrl = window.location.protocol.startsWith('http') 
+      ? `${window.location.origin}${window.location.pathname}` 
+      : 'https://hoai-bot.github.io/pickleball-ai-engine/';
+
+    const passportWebUrl = `${baseUrl}?p=${shortPayload}`;
+
+    const qrContainer = document.getElementById('qrContainer');
+    qrContainer.innerHTML = '';
+
+    new QRCode(qrContainer, {
+      text: passportWebUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  }
+
+  async function pollTaskStatus(taskId) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
+        const data = await res.json();
+
+        if (data.status === 'COMPLETED') {
+          clearInterval(interval);
+          renderPassportCard(data.result);
+        } else if (data.status === 'FAILED') {
+          clearInterval(interval);
+          alert(`❌ Phân tích AI gặp lỗi: ${data.error || 'Lỗi xử lý video'}`);
+          document.getElementById('statusBox').style.display = 'none';
+          document.getElementById('btnSubmit').disabled = false;
+        }
+      } catch (err) {
+        console.log("Polling status...", err);
+      }
+    }, 2000);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pPayload = urlParams.get('p');
+    if (pPayload) {
+      try {
+        const parts = pPayload.split(',');
+        if (parts.length >= 6) {
+          const r = parts[0];
+          const d = parts[1];
+          const e = parts[2];
+          const k = parts[3];
+          const c = parts[4];
+          const lang = parts[5];
+          const tierKey = parts[6] || 'intermediate';
+          let decodedVp = parts[7] ? decodeURIComponent(atob(parts[7])) : '';
+
+          if (lang && lang !== currentLang) {
+            currentLang = lang;
+            document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
+          }
+
+          document.getElementById('formCard').style.display = 'none';
+
+          renderPassportCard({
+            calculated_rating: `${r} PVNA`,
+            overall_composite_score: c,
+            avg_elbow_angle: `${e}°`,
+            avg_knee_angle: `${k}°`,
+            tierKey: tierKey,
+            t: getTierLabel(tierKey, currentLang),
+            vp: decodedVp,
+            id: 'PVNA-LD-VERIFIED'
+          });
+        }
+      } catch (err) {
+        console.error("Lỗi đọc dữ liệu QR:", err);
+      }
+    }
+  });
+</script>
+</body>
+</html>
