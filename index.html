@@ -93,6 +93,27 @@
       line-height: 1.5;
     }
 
+    .guide-banner-btn {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(14, 165, 233, 0.3));
+      border: 1px solid var(--accent-blue);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+    .guide-banner-btn:hover {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.4), rgba(14, 165, 233, 0.5));
+      transform: translateY(-1px);
+    }
+
     .form-group { margin-bottom: 16px; }
 
     .form-group label {
@@ -316,6 +337,80 @@
       width: 100% !important;
       height: 100% !important;
     }
+
+    /* MODAL GUIDELINE CSS */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      z-index: 99999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(5px);
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--accent-blue);
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      color: #f8fafc;
+      text-align: left;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .close-btn:hover { color: #fff; }
+
+    .guide-rule {
+      background: #0f172a;
+      border-left: 4px solid var(--accent-blue);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .guide-rule strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -337,10 +432,19 @@
         Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu.
       </div>
 
+      <!-- BANNER NÚT MỞ HƯỚNG DẪN GHI HÌNH CHUẨN AI -->
+      <button type="button" class="guide-banner-btn" onclick="openRecordingGuideModal()">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <i class="fa-solid fa-video" style="color:var(--accent-gold);"></i>
+          <span data-vi="Hướng Dẫn Ghi Hình Chuẩn AI (Độ Chính Xác 95%+)" data-en="AI Recording Guidelines (95%+ Accuracy)">Hướng Dẫn Ghi Hình Chuẩn AI (Độ Chính Xác 95%+)</span>
+        </span>
+        <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i>
+      </button>
+
       <form id="rating-form">
         <!-- 1. Video -->
         <div class="form-group">
-          <label data-vi="1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):" data-en="1. Video Input (5-15s recommended):">1. Phương Thức Tải Video Bài Test (Khuyên dùng video 5-15s):</label>
+          <label data-vi="1. Phương Thức Tải Video Bài Test (Khuyên dùng video 30s-1p):" data-en="1. Video Input (30s-1m recommended):">1. Phương Thức Tải Video Bài Test (Khuyên dùng video 30s-1p):</label>
           <div class="input-mode-tabs">
             <div class="tab-btn" id="tabUrl" onclick="switchVideoMode('url')" data-vi="🔗 Dán Link URL" data-en="🔗 Paste URL">🔗 Dán Link URL</div>
             <div class="tab-btn active" id="tabFile" onclick="switchVideoMode('file')" data-vi="📁 Tải Video Từ Điện Thoại" data-en="📁 Upload Video">📁 Tải Video Từ Điện Thoại</div>
@@ -356,7 +460,7 @@
               <div style="font-size:12px; color:#cbd5e1; font-weight:600;" id="fileNameDisplay" data-vi="Bấm vào đây để chọn clip bài test từ máy" data-en="Click here to select test video from device">
                 Bấm vào đây để chọn clip bài test từ máy
               </div>
-              <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" data-vi="(Video test dink/drop từ 5-15 giây để xử lý nhanh nhất)" data-en="(5-15s drill video for instant processing)">(Video test dink/drop từ 5-15 giây để xử lý nhanh nhất)</div>
+              <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" data-vi="(Video dink/drop từ 30s-1p chứa 3-5 lượt bóng qua lại để phân tích chính xác nhất)" data-en="(30s-1m video with 3-5 rallies for best accuracy)">(Video dink/drop từ 30s-1p chứa 3-5 lượt bóng qua lại để phân tích chính xác nhất)</div>
             </div>
             <input type="file" id="video_file" accept="video/*" style="display:none;" onchange="handleFileSelect(this)">
           </div>
@@ -528,6 +632,53 @@
 
   </div>
 
+  <!-- MODAL POPUP HƯỚNG DẪN GHI HÌNH CHUẨN AI -->
+  <div class="modal-overlay" id="recordingGuideModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>
+          <i class="fa-solid fa-camera-rotate"></i>
+          <span data-vi="Quy Chuẩn Ghi Hình Chấm Điểm AI V4.0" data-en="AI Rating Video Standards V4.0">Quy Chuẩn Ghi Hình Chấm Điểm AI V4.0</span>
+        </h3>
+        <button type="button" class="close-btn" onclick="closeRecordingGuideModal()">×</button>
+      </div>
+
+      <div class="guide-rule" style="border-left-color: var(--accent-blue);">
+        <strong style="color: var(--accent-blue);" data-vi="1. Vị Trí & Góc Đặt Máy (Tripod)" data-en="1. Camera Position & Angle">1. Vị Trí & Góc Đặt Máy (Tripod)</strong>
+        <span data-vi="• Đặt camera sau vạch cuối sân (Baseline), chếch góc 30° – 45° so với trục dọc sân.<br>• Độ cao ngang ngực hoặc hông (1.2m – 1.5m). Bắt buộc cố định máy, tuyệt đối không cầm tay rung lắc." data-en="• Place camera behind baseline at 30° – 45° diagonal angle.<br>• Chest or waist height (1.2m – 1.5m) on a fixed tripod. No hand-held shaking.">
+          • Đặt camera sau vạch cuối sân (Baseline), chếch góc 30° – 45° so với trục dọc sân.<br>• Độ cao ngang ngực hoặc hông (1.2m – 1.5m). Bắt buộc cố định máy, tuyệt đối không cầm tay rung lắc.
+        </span>
+      </div>
+
+      <div class="guide-rule" style="border-left-color: var(--accent-green);">
+        <strong style="color: var(--accent-green);" data-vi="2. Khung Hình & Tầm Nhìn (Framing)" data-en="2. Framing & Vision">2. Khung Hình & Tầm Nhìn (Framing)</strong>
+        <span data-vi="• Luôn quay ngang màn hình (Landscape 16:9).<br>• Phải thấy trọn vẹn toàn bộ thân người từ đỉnh đầu đến gót chân và thấy rõ vạch bếp (Kitchen Line) để kiểm tra lỗi dẫm vạch." data-en="• Always record horizontally (Landscape 16:9).<br>• Full-body view from head to heels and clear view of Kitchen Line for fault check.">
+          • Luôn quay ngang màn hình (Landscape 16:9).<br>• Phải thấy trọn vẹn toàn bộ thân người từ đỉnh đầu đến gót chân và thấy rõ vạch bếp (Kitchen Line) để kiểm tra lỗi dẫm vạch.
+        </span>
+      </div>
+
+      <div class="guide-rule" style="border-left-color: var(--accent-gold);">
+        <strong style="color: var(--accent-gold);" data-vi="3. Thời Lượng & Chất Lượng Video" data-en="3. Duration & Quality">3. Thời Lượng & Chất Lượng Video</strong>
+        <span data-vi="• Thời lượng khuyến nghị: 45 giây – 2 phút (tương đương 3 – 5 lượt rally qua lại).<br>• Độ phân giải tối thiểu 1080p, ưu tiên 60 fps để tránh nhòe bóng khi bay tốc độ cao." data-en="• Recommended length: 45s – 2min (3 – 5 continuous rallies).<br>• 1080p resolution, preferably 60 fps to capture high-speed ball motion without blur.">
+          • Thời lượng khuyến nghị: 45 giây – 2 phút (tương đương 3 – 5 lượt rally qua lại).<br>• Độ phân giải tối thiểu 1080p, ưu tiên 60 fps để tránh nhòe bóng khi bay tốc độ cao.
+        </span>
+      </div>
+
+      <div class="guide-rule" style="border-left-color: #a855f7;">
+        <strong style="color: #c084fc;" data-vi="4. Kịch Bản Đánh Bóng Đạt Điểm Chuẩn" data-en="4. Recommended Shot Routine">4. Kịch Bản Đánh Bóng Đạt Điểm Chuẩn</strong>
+        <span data-vi="• Clip nên có đầy đủ: Serve/Return sâu cuối sân → Third-shot drop chuẩn vào bếp → Đấu dink 4-6 nhịp tại vạch Kitchen để AI chấm độ ổn định gối và cổ tay." data-en="• Include full sequence: Deep Serve/Return → Precise 3rd-shot drop → 4-6 dink exchanges at Kitchen line to evaluate knee/wrist stability.">
+          • Clip nên có đầy đủ: Serve/Return sâu cuối sân → Third-shot drop chuẩn vào bếp → Đấu dink 4-6 nhịp tại vạch Kitchen để AI chấm độ ổn định gối và cổ tay.
+        </span>
+      </div>
+
+      <div style="margin-top: 18px; text-align: right;">
+        <button type="button" onclick="closeRecordingGuideModal()" style="background: linear-gradient(135deg, #0284c7, #16a34a); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px;" data-vi="Đã Hiểu, Quay Lại Tải Video" data-en="Got It, Back to Upload">
+          Đã Hiểu, Quay Lại Tải Video
+        </button>
+      </div>
+    </div>
+  </div>
+
 <script>
   const API_BASE_URL = 'https://pickleball-ai-engine-wao0.onrender.com';
   let currentLang = 'vi';
@@ -551,6 +702,23 @@
   };
 
   let lastPassportData = null;
+
+  function openRecordingGuideModal() {
+    const modal = document.getElementById('recordingGuideModal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeRecordingGuideModal() {
+    const modal = document.getElementById('recordingGuideModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  window.addEventListener('click', (e) => {
+    const modal = document.getElementById('recordingGuideModal');
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
 
   function switchVideoMode(mode) {
     activeVideoMode = mode;
@@ -657,7 +825,7 @@
       const text = el.getAttribute(`data-${currentLang}`);
       if (text) {
         if (el.tagName === 'OPTION') { el.text = text; }
-        else { el.innerText = text; }
+        else { el.innerHTML = text; }
       }
     });
 
