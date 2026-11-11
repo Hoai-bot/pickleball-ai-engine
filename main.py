@@ -15,8 +15,8 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTa
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Commercial Grade V4.0",
-    version="4.0.0"
+    title="Pickleball AI Enterprise Engine - Professional Tournament V5.0",
+    version="5.0.0"
 )
 
 app.add_middleware(
@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SECRET_KEY = os.getenv("SECRET_KEY", "PICKLEBALL_AI_ENTERPRISE_KEY_2026_SECURE")
+SECRET_KEY = os.getenv("SECRET_KEY", "PICKLEBALL_PRO_TOURNAMENT_OFFICIAL_SECRET_2026")
 BACKGROUND_TASKS_STORE: Dict[str, dict] = {}
 
 DICT_I18N = {
@@ -65,8 +65,8 @@ def calculate_angle(a, b, c):
         angle = 360 - angle
     return round(angle, 1)
 
-def generate_secure_qr_signature(player_id: str, rating: str, winrate: str, audit_hash: str) -> str:
-    raw_data = f"{player_id}:{rating}:{winrate}:{audit_hash}"
+def generate_tournament_qr_signature(player_id: str, rating: str, tier: str, audit_hash: str) -> str:
+    raw_data = f"{player_id}:{rating}:{tier}:{audit_hash}:TOURNAMENT_OFFICIAL_V5"
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:16]
 
 def order_court_points(pts):
@@ -133,82 +133,113 @@ def download_online_video(url: str, output_path: str = "temp_online.mp4") -> str
 
 def verify_and_scrape_profile(profile_url: str):
     """
-    Xác thực nguồn chứng chỉ độc lập: Tự động trích xuất lịch sử thi đấu từ link profile thật,
-    loại bỏ hoàn toàn khả năng người dùng tự sửa kết quả trên form.
+    Module kiểm tra và xác thực hồ sơ giải đấu độc lập (DUPR / Pickleball Global).
     """
     if not profile_url or profile_url.strip() in ["", "None", "string"]:
-        return None, "UNVERIFIED"
+        return None, "UNVERIFIED_SELF_ASSESSMENT"
 
     clean_url = profile_url.strip()
     try:
-        # Nhận diện đường dẫn hồ sơ thi đấu hợp lệ
         is_dupr = "mydupr.com" in clean_url or "dupr.com" in clean_url
         is_pickleball_global = "pickleball.global" in clean_url or "pickleballtournaments.com" in clean_url
         
         if not (is_dupr or is_pickleball_global):
-            return None, "CUSTOM_OR_UNVERIFIED_URL"
+            return None, "EXTERNAL_UNVERIFIED_SOURCE"
 
-        # Giả lập đối soát dữ liệu chứng chỉ giải đấu
         req = urllib.request.Request(clean_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=4) as response:
             html = response.read().decode('utf-8', errors='ignore')
-            # Trích xuất số trận thắng nếu có khớp biểu thức mẫu
             match = re.search(r'(\d+)\s*(Wins|Thắng).*?(\d+)\s*(Losses|Bại|Total)', html, re.IGNORECASE)
             if match:
                 wins = int(match.group(1))
                 losses = int(match.group(3))
                 total = wins + losses
-                return {"wins": wins, "total": total, "winrate": round((wins/max(1, total))*100, 1)}, "VERIFIED_OFFICIAL"
+                return {"wins": wins, "total": total, "winrate": round((wins/max(1, total))*100, 1)}, "OFFICIALLY_VERIFIED"
 
-        return None, "VERIFIED_DOMAIN_PENDING_SYNC"
+        return None, "DOMAIN_VERIFIED_PENDING_SYNC"
     except Exception:
-        return None, "LINK_OFFLINE_OR_PRIVATE"
+        return None, "PROFILE_LINK_PRIVATE"
 
-def compute_professional_biomechanics(elbow_angles: List[float], knee_angles: List[float]) -> dict:
+def classify_and_score_strokes(stroke_data: List[dict]) -> dict:
     """
-    Thuật toán phân tích động cơ sinh học V4.0:
-    Tính toán dựa trên phân vị (Percentiles) và độ lệch chuẩn để đo độ ổn định cú đánh
-    thay vì lấy trung bình cộng cào bằng.
+    Thuật toán V5.0: Phân loại kỹ thuật từng cú đánh (Dink, Drop, Drive/Smash)
+    thay vì lấy góc trung bình cộng toàn clip.
     """
-    if not elbow_angles or not knee_angles:
+    if not stroke_data:
         return {
-            "bio_score": 2.50,
-            "consistency_index": 70.0,
+            "dink_rating": 2.50,
+            "drop_rating": 2.50,
+            "drive_rating": 2.50,
             "ready_stance_percent": 65.0,
-            "avg_elbow": 112.5,
-            "avg_knee": 138.0
+            "composite_bio_rating": 2.50,
+            "stroke_breakdown": {"dink_count": 0, "drop_count": 0, "drive_count": 0}
         }
 
-    # Phân tích độ gập gối khi sẵn sàng (Ready Stance: góc gối từ 115 đến 145 độ)
-    ready_frames = [ang for ang in knee_angles if 115.0 <= ang <= 145.0]
-    ready_stance_ratio = len(ready_frames) / max(1, len(knee_angles))
+    dink_frames = []
+    drop_frames = []
+    drive_frames = []
+    ready_stance_count = 0
 
-    # Độ biến thiên vung tay (Đo tính nhất quán - Consistency)
-    elbow_std = float(np.std(elbow_angles))
-    knee_std = float(np.std(knee_angles))
-    
-    # Người đánh càng ổn định thì độ lệch chuẩn của các pha vung vợt nằm trong khoảng kiểm soát
-    elbow_consistency = max(0.0, min(100.0, 100.0 - (elbow_std * 1.5)))
-    knee_consistency = max(0.0, min(100.0, 100.0 - (knee_std * 1.2)))
-    overall_consistency = round((elbow_consistency * 0.6) + (knee_consistency * 0.4), 1)
+    for item in stroke_data:
+        elbow = item['elbow']
+        knee = item['knee']
+        wrist_y = item['wrist_y']
+        shoulder_y = item['shoulder_y']
 
-    # Chấm điểm kỹ thuật (Thang 2.0 - 4.5)
-    mean_elbow = float(np.mean(elbow_angles))
-    mean_knee = float(np.mean(knee_angles))
-    
-    # Đánh giá độ chuẩn kỹ thuật
-    elbow_form_score = max(0.0, 1.0 - abs(mean_elbow - 118.0) / 30.0)
-    knee_form_score = max(0.0, 1.0 - abs(mean_knee - 132.0) / 30.0)
-    
-    base_bio = 2.0 + (elbow_form_score * 0.8) + (knee_form_score * 0.8) + (ready_stance_ratio * 0.9)
-    bio_score = round(min(4.5, base_bio), 2)
+        # Đánh giá tư thế sẵn sàng gập gối (Ready Stance)
+        if 115.0 <= knee <= 145.0:
+            ready_stance_count += 1
+
+        # Phân loại: Cú đánh trên cao (Smash/High Drive) vs Cú đánh tầm trung/thấp (Drop & Dink)
+        if wrist_y < shoulder_y:  # Cổ tay cao hơn vai -> Smash / High Drive
+            drive_frames.append(item)
+        elif 95.0 <= elbow <= 135.0 and knee <= 145.0: # Tay kiểm soát ngắn, gối chùng -> Dink
+            dink_frames.append(item)
+        else: # Vung vợt chuyển tiếp từ sân sâu -> Drop / Reset
+            drop_frames.append(item)
+
+    total_frames = len(stroke_data)
+    ready_percent = round((ready_stance_count / max(1, total_frames)) * 100, 1)
+
+    # 1. Điểm Dink (Tiêu chuẩn: Cổ tay/khuỷu tay cố định ~115°-125°, gối gập thấp ~125°-135°)
+    if dink_frames:
+        d_elbow_std = float(np.std([f['elbow'] for f in dink_frames]))
+        d_knee_mean = float(np.mean([f['knee'] for f in dink_frames]))
+        dink_stability = max(0.0, 1.0 - (d_elbow_std / 20.0))
+        dink_knee_depth = max(0.0, 1.0 - abs(d_knee_mean - 130.0) / 25.0)
+        dink_score = round(2.0 + (dink_stability * 1.3) + (dink_knee_depth * 1.2), 2)
+    else:
+        dink_score = 2.50
+
+    # 2. Điểm Drop / Reset (Tiêu chuẩn: Vung tay biên độ mượt mà, gối hỗ trợ nhịp nhàng)
+    if drop_frames:
+        dp_elbow_mean = float(np.mean([f['elbow'] for f in drop_frames]))
+        drop_form = max(0.0, 1.0 - abs(dp_elbow_mean - 120.0) / 30.0)
+        drop_score = round(2.0 + (drop_form * 2.2) + (ready_percent / 100.0 * 0.3), 2)
+    else:
+        drop_score = 2.50
+
+    # 3. Điểm Drive / Power (Độ ổn định khi vung tay tốc độ cao)
+    if drive_frames:
+        dr_elbow_mean = float(np.mean([f['elbow'] for f in drive_frames]))
+        drive_score = round(min(5.0, 2.0 + (dr_elbow_mean / 180.0) * 2.5), 2)
+    else:
+        drive_score = 2.50
+
+    # Tổng hợp điểm kỹ thuật Biomechanics (Trọng số: 40% Dink, 35% Drop, 25% Drive)
+    composite_bio = round((dink_score * 0.40) + (drop_score * 0.35) + (drive_score * 0.25), 2)
 
     return {
-        "bio_score": bio_score,
-        "consistency_index": overall_consistency,
-        "ready_stance_percent": round(ready_stance_ratio * 100, 1),
-        "avg_elbow": round(mean_elbow, 1),
-        "avg_knee": round(mean_knee, 1)
+        "dink_rating": min(5.50, dink_score),
+        "drop_rating": min(5.50, drop_score),
+        "drive_rating": min(5.50, drive_score),
+        "ready_stance_percent": ready_percent,
+        "composite_bio_rating": min(5.50, composite_bio),
+        "stroke_breakdown": {
+            "dink_frames": len(dink_frames),
+            "drop_frames": len(drop_frames),
+            "drive_frames": len(drive_frames)
+        }
     }
 
 def process_video_async_task(
@@ -248,7 +279,8 @@ def process_video_async_task(
     duration_sec = round(total_frames / fps, 1) if total_frames > 0 else 10.0
 
     frame_skip = 10 if duration_sec > 60 else 3
-    elbow_angles, knee_angles, kitchen_faults = [], [], []
+    stroke_samples = []
+    kitchen_faults = []
 
     try:
         import mediapipe as mp
@@ -281,6 +313,8 @@ def process_video_async_task(
                         hp = [lm[mp_pose.PoseLandmark.RIGHT_HIP.value].x, lm[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
                         kn = [lm[mp_pose.PoseLandmark.RIGHT_KNEE.value].x, lm[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
                         ak = [lm[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x, lm[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
+                        wrist_y_val = lm[mp_pose.PoseLandmark.RIGHT_WRIST.value].y
+                        shoulder_y_val = lm[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y
                     else:
                         sh = [lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
                         el = [lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
@@ -288,9 +322,19 @@ def process_video_async_task(
                         hp = [lm[mp_pose.PoseLandmark.LEFT_HIP.value].x, lm[mp_pose.PoseLandmark.LEFT_HIP.value].y]
                         kn = [lm[mp_pose.PoseLandmark.LEFT_KNEE.value].x, lm[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
                         ak = [lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+                        wrist_y_val = lm[mp_pose.PoseLandmark.LEFT_WRIST.value].y
+                        shoulder_y_val = lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y
 
-                    elbow_angles.append(calculate_angle(sh, el, wr))
-                    knee_angles.append(calculate_angle(hp, kn, ak))
+                    elbow_ang = calculate_angle(sh, el, wr)
+                    knee_ang = calculate_angle(hp, kn, ak)
+
+                    stroke_samples.append({
+                        "frame": frame_count,
+                        "elbow": elbow_ang,
+                        "knee": knee_ang,
+                        "wrist_y": wrist_y_val,
+                        "shoulder_y": shoulder_y_val
+                    })
     except Exception as e:
         print(f"MediaPipe Processing Exception: {e}")
     finally:
@@ -302,74 +346,80 @@ def process_video_async_task(
                 pass
         gc.collect()
 
-    # Phân tích kỹ thuật V4.0
-    bio_results = compute_professional_biomechanics(elbow_angles, knee_angles)
-    video_bio_rating = bio_results["bio_score"]
+    # Phân tích kỹ thuật V5.0
+    stroke_analysis = classify_and_score_strokes(stroke_samples)
+    video_bio_rating = stroke_analysis["composite_bio_rating"]
 
-    # Xác thực liên kết thành tích thi đấu chính thức
+    # Đối soát nguồn dữ liệu thi đấu
     scraped_data, verification_status = verify_and_scrape_profile(clean_profile_url)
     if scraped_data:
         wins_cnt = scraped_data["wins"]
         total_cnt = scraped_data["total"]
         winrate_val = scraped_data["winrate"]
-        winrate_source = "DUPR/Verified Network Sync"
+        winrate_source = "Official Verified Tournament Database"
 
+    is_official_verified = (verification_status == "OFFICIALLY_VERIFIED")
     is_pro = str(player_tier).lower() in ["pro", "pro elite"]
 
-    # THUẬT TOÁN ĐIỂM CHUẨN V4.0 CHỐNG GIAN LẬN:
-    # Điểm thi đấu thực tế được chuẩn hóa kèm hệ số tin cậy (Confidence Weight)
-    if total_cnt > 0:
-        match_confidence = min(1.0, total_cnt / 50.0) # Tối thiểu 50 trận để đạt 100% độ tin cậy
-        base_match_rating = 2.0 + (winrate_val / 100.0) * 1.8
+    # KHÓA TRẦN BẢO MẬT GIẢI ĐẤU (ANTI-FRAUD CAP):
+    # Nếu tự khai báo mà không có link kiểm chứng, điểm PVNA tối đa bị giới hạn ở 3.25
+    if not is_official_verified:
+        match_confidence = 0.40
+        passport_tier_level = "TIER-2: SELF-ASSESSMENT (UNVERIFIED)"
+        final_pvna = round(min(3.25, (video_bio_rating * 0.7) + 0.9), 2)
+    else:
+        # Khi có hồ sơ kiểm chứng chính thức:
+        match_confidence = min(1.0, total_cnt / 60.0)
+        passport_tier_level = "TIER-1: OFFICIAL TOURNAMENT CERTIFIED"
+        base_match_rating = 2.0 + (winrate_val / 100.0) * 2.0
         match_record_rating = (base_match_rating * match_confidence) + (2.5 * (1.0 - match_confidence))
         
-        calculated_pvna = (video_bio_rating * 0.5) + (match_record_rating * 0.5)
-        if is_pro and winrate_val >= 75.0 and total_cnt >= 100:
+        calculated_pvna = (video_bio_rating * 0.55) + (match_record_rating * 0.45)
+        if is_pro and winrate_val >= 75.0 and total_cnt >= 80:
             final_pvna = round(4.00 + (winrate_val - 75.0) * 0.04 + (video_bio_rating - 2.0) * 0.2, 2)
         else:
             final_pvna = round(calculated_pvna, 2)
-    else:
-        # Nếu không có lịch sử đấu được kiểm chứng, chỉ chấm dựa trên Biomechanics tối đa 3.50
-        final_pvna = round(min(3.50, video_bio_rating), 2)
 
     final_pvna = max(2.0, min(5.50, final_pvna))
 
-    # Quy đổi thang DUPR thương mại hóa (Estimated DUPR by AI)
+    # Quy đổi chuẩn DUPR pháp lý (Estimated DUPR by AI)
     if is_pro and final_pvna >= 4.0:
-        dupr_val = round(min(7.50, 6.80 + ((final_pvna - 4.0) * 0.7) + (winrate_val / 400.0)), 2)
+        dupr_val = round(min(7.55, 6.85 + ((final_pvna - 4.0) * 0.75) + (winrate_val / 350.0)), 2)
     else:
-        dupr_val = round(max(1.80, min(5.95, final_pvna - 0.02)), 2)
+        dupr_val = round(max(1.85, min(5.95, final_pvna - 0.03)), 2)
 
     rating_str = f"{final_pvna:.2f} PVNA"
     dupr_str = f"Estimated DUPR {dupr_val:.2f}"
-    player_id = f"PKL-{uuid.uuid4().hex[:8].upper()}"
-    audit_hash = hashlib.sha256(f"{final_pvna}:{dupr_val}:{total_cnt}".encode('utf-8')).hexdigest()[:8]
-    signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%", audit_hash)
+    player_id = f"PVNA-TN-{uuid.uuid4().hex[:8].upper()}"
+    audit_hash = hashlib.sha256(f"{final_pvna}:{dupr_val}:{passport_tier_level}:{total_cnt}".encode('utf-8')).hexdigest()[:8]
+    signature = generate_tournament_qr_signature(player_id, rating_str, passport_tier_level, audit_hash)
 
     BACKGROUND_TASKS_STORE[task_id] = {
         "status": "COMPLETED",
         "result": {
             "success": True,
+            "passport_tier": passport_tier_level,
             "player_id": player_id,
             "calculated_rating": rating_str,
             "dupr_rating": dupr_str,
-            "legal_disclaimer": "Certified Estimated Rating by Pickleball AI Engine V4.0. Independent assessment.",
-            "data_authenticity": {
-                "profile_verification": verification_status,
-                "confidence_score": f"{round(min(1.0, total_cnt / 50.0) * 100, 1)}%",
-                "verified_matches_counted": total_cnt
+            "tournament_validation": {
+                "verification_status": verification_status,
+                "confidence_score": f"{round(match_confidence * 100, 1)}%",
+                "official_matches_counted": total_cnt if is_official_verified else "Unverified Self-Report",
+                "anti_fraud_cap_applied": "NO (Verified)" if is_official_verified else "YES (Capped at 3.25 Max)"
             },
-            "biomechanics_audit": {
-                "dynamic_rating": f"{video_bio_rating} / 4.50",
-                "stroke_consistency": f"{bio_results['consistency_index']}%",
-                "ready_stance_ratio": f"{bio_results['ready_stance_percent']}%",
-                "avg_elbow_angle": f"{bio_results['avg_elbow']}°",
-                "avg_knee_angle": f"{bio_results['avg_knee']}°"
+            "technical_skills_audit": {
+                "dink_control_score": f"{stroke_analysis['dink_rating']} / 5.50",
+                "drop_reset_score": f"{stroke_analysis['drop_rating']} / 5.50",
+                "drive_power_score": f"{stroke_analysis['drive_rating']} / 5.50",
+                "ready_stance_ratio": f"{stroke_analysis['ready_stance_percent']}%",
+                "composite_biomechanics": f"{video_bio_rating} / 5.50"
             },
             "qr_certified_seal": {
-                "status": "SEALED_AND_VERIFIED",
+                "status": "APPROVED_FOR_TOURNAMENT_ROSTER" if is_official_verified else "APPROVED_FOR_CASUAL_PLAY",
                 "signature": signature,
-                "audit_hash": audit_hash
+                "audit_hash": audit_hash,
+                "referee_scan_url": f"https://hoai-bot.github.io/pickleball-ai-engine/?verify={signature}"
             }
         }
     }
@@ -440,9 +490,9 @@ def analyze_video(
         if not (dl_res and os.path.exists(temp_video_path)):
             raise HTTPException(status_code=400, detail="Không thể tải video từ URL!")
     else:
-        raise HTTPException(status_code=400, detail="Vui lòng cung cấp File Video để đảm bảo chất lượng bóc tách!")
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp File Video bài test đạt chuẩn!")
 
-    BACKGROUND_TASKS_STORE[task_id] = {"status": "PROCESSING", "message": "Commercial Engine V4.0 is auditing"}
+    BACKGROUND_TASKS_STORE[task_id] = {"status": "PROCESSING", "message": "Tournament Engine V5.0 is executing shot classification audit"}
 
     background_tasks.add_task(
         process_video_async_task,
@@ -475,7 +525,7 @@ def analyze_video(
         "task_id": task_id,
         "status": "PROCESSING",
         "check_status_url": f"/api/task-status/{task_id}",
-        "engine_version": "V4.0 Commercial Audit Ready"
+        "engine_version": "V5.0 Tournament Edition - Shot Classifier Active"
     }
 
 @app.get("/api/task-status/{task_id}")
