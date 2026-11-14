@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pickleball AI Passport - PVNA Lam Dong Pilot V3.6.5</title>
+  <title>Pickleball AI Passport - Rating Engine V5.0</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -417,7 +417,7 @@
 
   <div class="app-header">
     <div class="brand-title">
-      <i class="fa-solid fa-award"></i> PVNA LÂM ĐỒNG - AI PASSPORT
+      <i class="fa-solid fa-award"></i> AI PASSPORT - PICKLEBALL RATING
     </div>
     <button class="btn-lang" id="langBtn" onclick="toggleLanguage()">🌐 VI / EN</button>
   </div>
@@ -425,8 +425,8 @@
   <div class="main-container">
     
     <div class="card" id="formCard">
-      <h3 class="card-title" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5" data-en="⚡ AI RATING VERIFICATION - PVNA V3.6.5">
-        ⚡ SÁT HẠCH TRÌNH ĐỘ AI - PVNA V3.6.5
+      <h3 class="card-title" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT" data-en="⚡ AI PASSPORT RATING VERIFICATION">
+        ⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT
       </h3>
       <div class="card-subtitle" data-vi="Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu." data-en="Select preset traits or click '+ Custom' for precise AI tracking.">
         Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu.
@@ -569,8 +569,8 @@
           </div>
         </div>
 
-        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 KIỂM ĐỊNH RATING PVNA LÂM ĐỒNG" data-en="🚀 VERIFY PVNA RATING">
-          🚀 KIỂM ĐỊNH RATING PVNA LÂM ĐỒNG
+        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 KIỂM ĐỊNH RATING AI PASSPORT" data-en="🚀 VERIFY AI PASSPORT RATING">
+          🚀 KIỂM ĐỊNH RATING AI PASSPORT
         </button>
       </form>
     </div>
@@ -587,9 +587,9 @@
     <div class="passport-card" id="passportCard">
       <div class="passport-header">
         <div>
-          <span class="badge-certified" data-vi="✔ PVNA OFFICIALLY VERIFIED" data-en="✔ PVNA OFFICIALLY VERIFIED">✔ PVNA OFFICIALLY VERIFIED</span>
+          <span class="badge-certified" data-vi="✔ AI PASSPORT OFFICIALLY VERIFIED" data-en="✔ AI PASSPORT OFFICIALLY VERIFIED">✔ AI PASSPORT OFFICIALLY VERIFIED</span>
           <div style="display:flex; align-items:center; margin-top:6px;">
-            <h3 style="margin:0; color:var(--accent-gold); font-size:24px;" id="resRating">2.75 PVNA</h3>
+            <h3 style="margin:0; color:var(--accent-gold); font-size:24px;" id="resRating">2.75 AI-RATING</h3>
             <span class="dupr-badge" id="resDupr">DUPR 2.71</span>
           </div>
         </div>
@@ -622,9 +622,9 @@
       <div class="qr-section">
         <div class="qr-container" id="qrContainer"></div>
         <div>
-          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: PVNA-LD-TEST</div>
-          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số niêm phong kiểm định PVNA Lâm Đồng. Quét mã QR để đối soát thực địa." data-en="Digitally sealed by PVNA Lam Dong. Scan to verify on court.">
-            Chữ ký số niêm phong kiểm định PVNA Lâm Đồng. Quét mã QR để đối soát thực địa.
+          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: AI-PASS-TEST</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số niêm phong kiểm định AI PASSPORT. Quét mã QR để đối soát thực địa." data-en="Digitally sealed by AI PASSPORT. Scan to verify on court.">
+            Chữ ký số niêm phong kiểm định AI PASSPORT. Quét mã QR để đối soát thực địa.
           </div>
         </div>
       </div>
@@ -638,7 +638,7 @@
       <div class="modal-header">
         <h3>
           <i class="fa-solid fa-camera-rotate"></i>
-          <span data-vi="Quy Chuẩn Ghi Hình Chấm Điểm AI V4.0" data-en="AI Rating Video Standards V4.0">Quy Chuẩn Ghi Hình Chấm Điểm AI V4.0</span>
+          <span data-vi="Quy Chuẩn Ghi Hình Chấm Điểm AI PASSPORT" data-en="AI PASSPORT Video Recording Standards">Quy Chuẩn Ghi Hình Chấm Điểm AI PASSPORT</span>
         </h3>
         <button type="button" class="close-btn" onclick="closeRecordingGuideModal()">×</button>
       </div>
@@ -834,15 +834,15 @@
     }
   }
 
-  function calculateDUPR(pvnaString, tierVal) {
-    const numericPVNA = parseFloat(pvnaString) || 2.75;
+  function calculateDUPR(ratingString, tierVal) {
+    const numericRating = parseFloat(ratingString) || 2.75;
     const currentTier = tierVal || document.getElementById('player_tier').value;
 
     if (currentTier === 'pro') {
-      let proDupr = 7.00 + ((numericPVNA - 4.0) * 0.8) + 0.25;
+      let proDupr = 7.00 + ((numericRating - 4.0) * 0.8) + 0.25;
       return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
     }
-    const standardDupr = Math.max(1.0, Math.min(6.0, numericPVNA - 0.04));
+    const standardDupr = Math.max(1.0, Math.min(6.0, numericRating - 0.04));
     return `DUPR ${standardDupr.toFixed(2)}`;
   }
 
@@ -937,15 +937,20 @@
 
     if (!ratingVal) {
       const compNum = parseFloat(compositeValRaw) || 75.0;
-      const purePvna = (2.0 + (compNum / 100.0) * 1.0).toFixed(2);
-      ratingVal = `${purePvna} PVNA`;
+      const pureScore = (2.0 + (compNum / 100.0) * 1.0).toFixed(2);
+      ratingVal = `${pureScore} AI-RATING`;
+    } else {
+      ratingVal = ratingVal.replace('PVNA', 'AI-RATING');
     }
 
-    const duprVal = calculateDUPR(ratingVal.replace(' PVNA', ''), selectedTierKey);
+    const numericScoreStr = ratingVal.split(' ')[0];
+    const duprVal = calculateDUPR(numericScoreStr, selectedTierKey);
     const tierVal = resData.tournament_tier || resData.t || getTierLabel(selectedTierKey, currentLang);
     const elbowVal = resData.avg_elbow_angle || resData.e || '114.2°';
     const kneeVal = resData.avg_knee_angle || resData.k || '132.0°';
-    const playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'PVNA-LD-VERIFIED';
+    let playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'AI-PASS-VERIFIED';
+    playerIdVal = playerIdVal.replace('PVNA-LD', 'AI-PASS').replace('PVNA-TN', 'AI-PASS');
+
     const targetText = resData.vp || getSelectedVisualProfile(currentLang);
 
     document.getElementById('resTargetIdentity').innerText = targetText;
@@ -957,7 +962,7 @@
     document.getElementById('resComposite').innerText = `${compositeValRaw}/100`;
     document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
 
-    const numR = parseFloat(ratingVal.replace(' PVNA', '')) || 2.75;
+    const numR = parseFloat(numericScoreStr) || 2.75;
     const numD = parseFloat(duprVal.replace('DUPR ', '')) || 2.71;
     const numE = parseFloat(elbowVal) || 114.2;
     const numK = parseFloat(kneeVal) || 132.0;
@@ -1030,14 +1035,14 @@
           document.getElementById('formCard').style.display = 'none';
 
           renderPassportCard({
-            calculated_rating: `${r} PVNA`,
+            calculated_rating: `${r} AI-RATING`,
             overall_composite_score: c,
             avg_elbow_angle: `${e}°`,
             avg_knee_angle: `${k}°`,
             tierKey: tierKey,
             t: getTierLabel(tierKey, currentLang),
             vp: decodedVp,
-            id: 'PVNA-LD-VERIFIED'
+            id: 'AI-PASS-VERIFIED'
           });
         }
       } catch (err) {
