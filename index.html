@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pickleball AI Passport - Rating Engine V5.0</title>
+  <title>Pickleball AI Passport - Tournament Partner Portal</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -73,6 +73,35 @@
       margin-bottom: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
       text-align: left;
+    }
+
+    /* ACCESS GATE CARD */
+    .access-gate-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--accent-gold);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(250, 204, 21, 0.12);
+      margin-bottom: 20px;
+    }
+
+    .access-input {
+      width: 100%;
+      max-width: 280px;
+      padding: 12px 16px;
+      background: #0f172a;
+      border: 1px solid var(--accent-blue);
+      border-radius: 10px;
+      color: var(--accent-gold);
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 14px auto;
+      display: block;
+      outline: none;
     }
 
     .card-title {
@@ -423,11 +452,35 @@
   </div>
 
   <div class="main-container">
-    
-    <div class="card" id="formCard">
-      <h3 class="card-title" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT" data-en="⚡ AI PASSPORT RATING VERIFICATION">
-        ⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT
+
+    <!-- CỔNG XÁC THỰC MÃ ĐỐI TÁC / BAN TỔ CHỨC -->
+    <div class="access-gate-card" id="accessGateCard">
+      <i class="fa-solid fa-shield-halved" style="font-size:36px; color:var(--accent-gold); margin-bottom:10px;"></i>
+      <h3 style="margin:0 0 6px 0; font-size:16px; color:#fff;" data-vi="CỔNG THẨM ĐỊNH DÀNH CHO BAN TỔ CHỨC" data-en="TOURNAMENT ORGANIZER PORTAL">
+        CỔNG THẨM ĐỊNH DÀNH CHO BAN TỔ CHỨC
       </h3>
+      <p style="font-size:12px; color:var(--text-muted); margin:0 auto; max-width:420px; line-height:1.5;" data-vi="Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI." data-en="Please enter your issued Tournament Access Code to unlock the AI Rating Engine.">
+        Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI.
+      </p>
+      <input type="text" id="accessCodeInput" class="access-input" placeholder="NHẬP MÃ..." onkeypress="if(event.key==='Enter') verifyAccessCode()">
+      <div id="accessErrorMsg" style="display:none; color:#f87171; font-size:12px; font-weight:600; margin-bottom:10px;" data-vi="❌ Mã truy cập không hợp lệ hoặc đã hết hạn!" data-en="❌ Invalid or expired access code!">
+        ❌ Mã truy cập không hợp lệ hoặc đã hết hạn!
+      </div>
+      <button type="button" class="btn-submit" style="max-width:280px; margin:0 auto;" onclick="verifyAccessCode()" data-vi="🔓 MỞ KHÓA HỆ THỐNG" data-en="🔓 UNLOCK ENGINE">
+        🔓 MỞ KHÓA HỆ THỐNG
+      </button>
+    </div>
+    
+    <!-- FORM CHẤM ĐIỂM CHÍNH (ẨN CHO TỚI KHI NHẬP ĐÚNG MÃ) -->
+    <div class="card" id="formCard" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 class="card-title" style="margin:0;" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT" data-en="⚡ AI PASSPORT RATING VERIFICATION">
+          ⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT
+        </h3>
+        <span id="activePartnerBadge" style="background:rgba(16,185,129,0.2); border:1px solid var(--accent-green); color:var(--accent-green); font-size:10px; font-weight:800; padding:3px 8px; border-radius:12px;">
+          ✔ PARTNER VERIFIED
+        </span>
+      </div>
       <div class="card-subtitle" data-vi="Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu." data-en="Select preset traits or click '+ Custom' for precise AI tracking.">
         Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu.
       </div>
@@ -681,6 +734,10 @@
 
 <script>
   const API_BASE_URL = 'https://pickleball-ai-engine-wao0.onrender.com';
+  
+  // DANH SÁCH MÃ ĐỐI TÁC HỢP LỆ (Bạn có thể thêm mã mới cho từng giải đấu)
+  const VALID_ACCESS_CODES = ['DALAT2026', 'AIPASS88', 'PILOT2026'];
+
   let currentLang = 'vi';
   let activeVideoMode = 'file';
 
@@ -702,6 +759,23 @@
   };
 
   let lastPassportData = null;
+
+  function verifyAccessCode() {
+    const inputVal = document.getElementById('accessCodeInput').value.trim().toUpperCase();
+    const errorMsg = document.getElementById('accessErrorMsg');
+    if (VALID_ACCESS_CODES.includes(inputVal)) {
+      sessionStorage.setItem('ai_passport_unlocked', inputVal);
+      unlockPlatformUI(inputVal);
+    } else {
+      errorMsg.style.display = 'block';
+    }
+  }
+
+  function unlockPlatformUI(code) {
+    document.getElementById('accessGateCard').style.display = 'none';
+    document.getElementById('formCard').style.display = 'block';
+    document.getElementById('activePartnerBadge').innerText = `✔ CODE: ${code}`;
+  }
 
   function openRecordingGuideModal() {
     const modal = document.getElementById('recordingGuideModal');
@@ -1014,6 +1088,9 @@
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const pPayload = urlParams.get('p');
+    const urlCode = urlParams.get('code');
+
+    // 1. Nếu quét QR thẻ kết quả -> Hiển thị thẻ công khai ngay không cần mật khẩu
     if (pPayload) {
       try {
         const parts = pPayload.split(',');
@@ -1032,6 +1109,7 @@
             document.getElementById('langBtn').innerText = currentLang === 'vi' ? '🌐 VI / EN' : '🌐 EN / VI';
           }
 
+          document.getElementById('accessGateCard').style.display = 'none';
           document.getElementById('formCard').style.display = 'none';
 
           renderPassportCard({
@@ -1044,10 +1122,20 @@
             vp: decodedVp,
             id: 'AI-PASS-VERIFIED'
           });
+          return;
         }
       } catch (err) {
         console.error("Lỗi đọc dữ liệu QR:", err);
       }
+    }
+
+    // 2. Nếu có truyền sẵn ?code=DALAT2026 trên URL hoặc đã mở khóa trong phiên -> Tự mở khóa
+    const savedCode = sessionStorage.getItem('ai_passport_unlocked');
+    if (urlCode && VALID_ACCESS_CODES.includes(urlCode.toUpperCase())) {
+      sessionStorage.setItem('ai_passport_unlocked', urlCode.toUpperCase());
+      unlockPlatformUI(urlCode.toUpperCase());
+    } else if (savedCode && VALID_ACCESS_CODES.includes(savedCode)) {
+      unlockPlatformUI(savedCode);
     }
   });
 </script>
