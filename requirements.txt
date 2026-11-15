@@ -1,7 +1,7 @@
-fastapi
-uvicorn
-opencv-python-headless
-mediapipe
-numpy
-yt-dlp
-python-multipart
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+opencv-python-headless>=4.9.0.80
+mediapipe>=0.10.14
+numpy>=1.26.4
+yt-dlp>=2024.10.22
