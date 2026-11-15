@@ -15,8 +15,8 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTa
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Pickleball AI Enterprise Engine - Commercial Grade V4.1",
-    version="4.1.0"
+    title="PVR AI Enterprise Engine - Pickleball Verified Rating V5.0",
+    version="5.0.0"
 )
 
 app.add_middleware(
@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SECRET_KEY = os.getenv("SECRET_KEY", "PICKLEBALL_AI_ENTERPRISE_KEY_2026_SECURE")
+SECRET_KEY = os.getenv("SECRET_KEY", "PVR_AI_ENTERPRISE_KEY_2026_SECURE")
 BACKGROUND_TASKS_STORE: Dict[str, dict] = {}
 
 DICT_I18N = {
@@ -65,8 +65,8 @@ def calculate_angle(a, b, c):
         angle = 360 - angle
     return round(angle, 1)
 
-def generate_secure_qr_signature(player_id: str, rating: str, winrate: str, audit_hash: str) -> str:
-    raw_data = f"{player_id}:{rating}:{winrate}:{audit_hash}"
+def generate_secure_qr_signature(pick_id: str, rating: str, winrate: str, audit_hash: str) -> str:
+    raw_data = f"{pick_id}:{rating}:{winrate}:{audit_hash}"
     return hmac.new(SECRET_KEY.encode('utf-8'), raw_data.encode('utf-8'), hashlib.sha256).hexdigest()[:16]
 
 def order_court_points(pts):
@@ -139,10 +139,13 @@ def verify_and_scrape_profile(profile_url: str):
     try:
         is_dupr = "mydupr.com" in clean_url or "dupr.com" in clean_url
         is_pickleball_global = "pickleball.global" in clean_url or "pickleballtournaments.com" in clean_url
-        is_pvna = "pvna" in clean_url.lower()
+        is_pvr = "pvr" in clean_url.lower() or "pick-" in clean_url.lower()
 
-        if not (is_dupr or is_pickleball_global or is_pvna):
+        if not (is_dupr or is_pickleball_global or is_pvr):
             return None, "CUSTOM_OR_UNVERIFIED_URL"
+
+        if is_pvr and not clean_url.startswith("http"):
+            return None, "PICK_ID_FORMAT_VERIFIED"
 
         req = urllib.request.Request(clean_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=4) as response:
@@ -160,9 +163,10 @@ def verify_and_scrape_profile(profile_url: str):
 
 def compute_professional_biomechanics(elbow_angles: List[float], knee_angles: List[float], player_tier: str = "intermediate") -> dict:
     """
-    Thuật toán phân tích động cơ sinh học V4.1 (Hiệu chỉnh chuẩn thực tế PVNA / DUPR):
-    - Đánh giá dựa trên dải góc tối ưu (Optimal Range) thay vì phạt cứng vào 1 con số tĩnh.
-    - Quy đổi điểm kỹ thuật (0-100) sang thang điểm trình PVNA chuẩn xác (75/100 -> ~3.10 PVNA).
+    Thuật toán phân tích động cơ sinh học PVR Engine V5.0:
+    - Đánh giá dựa trên dải góc tối ưu (Optimal Biomechanics Range).
+    - Quy đổi điểm kỹ thuật (0-100) sang thang điểm trình PVR chuẩn thực tế (75/100 -> ~3.10 PVR).
+    - Tính toán ngưỡng khóa sàn kỹ thuật (Biomechanics Floor Lock) chống rửa điểm.
     """
     tier_lower = str(player_tier).lower()
     tier_base_bonus = 0.0
@@ -174,9 +178,10 @@ def compute_professional_biomechanics(elbow_angles: List[float], knee_angles: Li
         tier_base_bonus = -0.35
 
     if not elbow_angles or not knee_angles:
-        default_pvna = round(max(2.20, 2.95 + tier_base_bonus), 2)
+        default_pvr = round(max(2.20, 2.95 + tier_base_bonus), 2)
         return {
-            "bio_score": default_pvna,
+            "bio_score": default_pvr,
+            "bio_floor_lock": round(default_pvr - 0.15, 2),
             "bio_percent": 75.0,
             "consistency_index": 76.0,
             "ready_stance_percent": 72.0,
@@ -211,13 +216,15 @@ def compute_professional_biomechanics(elbow_angles: List[float], knee_angles: Li
         1
     )
 
-    # Quy đổi sang thang PVNA chuẩn Việt Nam:
-    # 50/100 -> 2.60 PVNA | 75/100 -> 3.10 PVNA | 90/100 -> 3.45 PVNA
-    raw_pvna = 2.25 + ((bio_percent - 35.0) / 65.0) * 1.35 + tier_base_bonus
-    bio_score = round(max(2.15, min(4.80, raw_pvna)), 2)
+    # Quy đổi sang thang PVR (Pickleball Verified Rating):
+    # 50/100 -> 2.60 PVR | 75/100 -> 3.10 PVR | 90/100 -> 3.45 PVR
+    raw_pvr = 2.25 + ((bio_percent - 35.0) / 65.0) * 1.35 + tier_base_bonus
+    bio_score = round(max(2.15, min(4.80, raw_pvr)), 2)
+    bio_floor_lock = round(max(2.00, bio_score - 0.15), 2)
 
     return {
         "bio_score": bio_score,
+        "bio_floor_lock": bio_floor_lock,
         "bio_percent": bio_percent,
         "consistency_index": overall_consistency,
         "ready_stance_percent": round(ready_stance_ratio * 100, 1),
@@ -241,6 +248,7 @@ def process_video_async_task(
     winrate_val: float,
     winrate_source: str,
     clean_profile_url: str,
+    custom_pick_id: Optional[str],
     custom_kitchen_y: Optional[int],
     src_homography_pts: Optional[list],
     in_out_bool: bool,
@@ -258,7 +266,6 @@ def process_video_async_task(
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration_sec = round(total_frames / fps, 1) if total_frames > 0 else 10.0
 
-    # Tối ưu bước nhảy khung hình để vừa nhanh vừa đủ mẫu chính xác
     frame_skip = 8 if duration_sec > 45 else 3
     elbow_angles, knee_angles = [], []
 
@@ -285,7 +292,6 @@ def process_video_async_task(
                 if results.pose_landmarks:
                     lm = results.pose_landmarks.landmark
 
-                    # Tự động chọn bên tay/chân có độ rõ nét (visibility) cao hơn để tránh lỗi góc quay chéo
                     r_vis = (
                         lm[mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility +
                         lm[mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility
@@ -317,7 +323,6 @@ def process_video_async_task(
                     e_ang = calculate_angle(sh, el, wr)
                     k_ang = calculate_angle(hp, kn, ak)
 
-                    # Lọc nhiễu khung xương bất thường
                     if 40.0 <= e_ang <= 175.0:
                         elbow_angles.append(e_ang)
                     if 70.0 <= k_ang <= 178.0:
@@ -333,9 +338,10 @@ def process_video_async_task(
                 pass
         gc.collect()
 
-    # Phân tích kỹ thuật V4.1
+    # Phân tích kỹ thuật PVR V5.0
     bio_results = compute_professional_biomechanics(elbow_angles, knee_angles, player_tier)
     video_bio_rating = bio_results["bio_score"]
+    bio_floor_lock = bio_results["bio_floor_lock"]
 
     # Xác thực liên kết thành tích thi đấu
     scraped_data, verification_status = verify_and_scrape_profile(clean_profile_url)
@@ -343,57 +349,69 @@ def process_video_async_task(
         wins_cnt = scraped_data["wins"]
         total_cnt = scraped_data["total"]
         winrate_val = scraped_data["winrate"]
-        winrate_source = "DUPR/PVNA Network Sync"
+        winrate_source = "DUPR/PVR Network Sync"
 
     is_pro = str(player_tier).lower() in ["pro", "pro elite"]
 
-    # TÍNH ĐIỂM CHUẨN PVNA V4.1 (CÂN BẰNG GIỮA VIDEO KỸ THUẬT VÀ THÀNH TÍCH ĐẤU)
+    # TÍNH ĐIỂM CHUẨN PVR V5.0 (CHỐNG TRÌNH BAO & KHÓA SÀN CHỐNG RỬA ĐIỂM)
     if total_cnt > 0:
         match_confidence = min(1.0, total_cnt / 30.0)
         base_match_rating = 2.40 + (winrate_val / 100.0) * 1.65
         match_record_rating = (base_match_rating * match_confidence) + (video_bio_rating * (1.0 - match_confidence))
 
-        calculated_pvna = (video_bio_rating * 0.60) + (match_record_rating * 0.40)
+        # 60% Kỹ thuật Video thực tế + 40% Thành tích đối đầu (chống thổi phồng điểm ảo)
+        calculated_pvr = (video_bio_rating * 0.60) + (match_record_rating * 0.40)
+
+        # Khóa sàn kỹ thuật chống rửa điểm (không tụt quá 0.15 so với kỹ thuật thực tế)
+        calculated_pvr = max(bio_floor_lock, calculated_pvr)
+
+        # Khóa trần chống trình bao (không vượt quá điểm kỹ thuật video + 0.30 nếu chưa đủ 50 trận)
+        if total_cnt < 50:
+            calculated_pvr = min(video_bio_rating + 0.30, calculated_pvr)
+
         if is_pro and winrate_val >= 75.0 and total_cnt >= 50:
-            final_pvna = round(4.00 + (winrate_val - 75.0) * 0.04 + (video_bio_rating - 2.5) * 0.2, 2)
+            final_pvr = round(4.00 + (winrate_val - 75.0) * 0.04 + (video_bio_rating - 2.5) * 0.2, 2)
         else:
-            final_pvna = round(calculated_pvna, 2)
+            final_pvr = round(calculated_pvr, 2)
     else:
-        # Chưa có lịch sử đấu giải: lấy trực tiếp điểm phân tích kỹ thuật video (không dìm điểm)
-        final_pvna = round(video_bio_rating, 2)
+        final_pvr = round(video_bio_rating, 2)
 
-    final_pvna = max(2.15, min(5.50, final_pvna))
+    final_pvr = max(2.15, min(5.50, final_pvr))
 
-    # Quy đổi thang DUPR chuẩn quốc tế (thấp hơn PVNA khoảng 0.12 - 0.15 điểm)
-    if is_pro and final_pvna >= 4.0:
-        dupr_val = round(min(7.50, 6.50 + ((final_pvna - 4.0) * 0.7) + (winrate_val / 400.0)), 2)
+    # Quy đổi thang DUPR chuẩn quốc tế (thấp hơn PVR khoảng 0.12 điểm)
+    if is_pro and final_pvr >= 4.0:
+        dupr_val = round(min(7.50, 6.50 + ((final_pvr - 4.0) * 0.7) + (winrate_val / 400.0)), 2)
     else:
-        dupr_val = round(max(2.00, min(5.85, final_pvna - 0.12)), 2)
+        dupr_val = round(max(2.00, min(5.85, final_pvr - 0.12)), 2)
 
-    rating_str = f"{final_pvna:.2f} PVNA"
+    rating_str = f"{final_pvr:.2f} PVR"
     dupr_str = f"DUPR {dupr_val:.2f}"
-    player_id = f"PKL-{uuid.uuid4().hex[:8].upper()}"
-    audit_hash = hashlib.sha256(f"{final_pvna}:{dupr_val}:{total_cnt}".encode('utf-8')).hexdigest()[:8]
-    signature = generate_secure_qr_signature(player_id, rating_str, f"{winrate_val:.0f}%", audit_hash)
+    pick_id = custom_pick_id.strip().upper() if (custom_pick_id and custom_pick_id.strip() not in ["", "string"]) else f"PICK-{uuid.uuid4().hex[:8].upper()}"
+    audit_hash = hashlib.sha256(f"{pick_id}:{final_pvr}:{dupr_val}:{total_cnt}".encode('utf-8')).hexdigest()[:8]
+    signature = generate_secure_qr_signature(pick_id, rating_str, f"{winrate_val:.0f}%", audit_hash)
 
     BACKGROUND_TASKS_STORE[task_id] = {
         "status": "COMPLETED",
         "result": {
             "success": True,
-            "player_id": player_id,
+            "pick_id": pick_id,
+            "player_id": pick_id,
             "calculated_rating": rating_str,
-            "pvna_score": final_pvna,
+            "pvr_score": final_pvr,
+            "pvna_score": final_pvr,
+            "peak_floor_lock": bio_floor_lock,
             "dupr_rating": dupr_str,
             "dupr_score": dupr_val,
             "biomechanics_score_100": bio_results["bio_percent"],
-            "legal_disclaimer": "Certified Estimated Rating by Pickleball AI Engine V4.1 (PVNA & DUPR Calibrated).",
+            "legal_disclaimer": "Certified Pickleball Verified Rating (PVR) by AI Enterprise Engine V5.0.",
             "data_authenticity": {
                 "profile_verification": verification_status,
                 "confidence_score": f"{round(min(1.0, max(0.75, total_cnt / 30.0)) * 100, 1)}%",
-                "verified_matches_counted": total_cnt
+                "verified_matches_counted": total_cnt,
+                "anti_sandbagging_floor": f"{bio_floor_lock:.2f} PVR"
             },
             "biomechanics_audit": {
-                "dynamic_rating": f"{video_bio_rating:.2f} PVNA",
+                "dynamic_rating": f"{video_bio_rating:.2f} PVR",
                 "score_100": f"{bio_results['bio_percent']}/100",
                 "stroke_consistency": f"{bio_results['consistency_index']}%",
                 "ready_stance_ratio": f"{bio_results['ready_stance_percent']}%",
@@ -402,6 +420,7 @@ def process_video_async_task(
             },
             "qr_certified_seal": {
                 "status": "SEALED_AND_VERIFIED",
+                "pick_id": pick_id,
                 "signature": signature,
                 "audit_hash": audit_hash
             }
@@ -414,6 +433,7 @@ def analyze_video(
     file: UploadFile = File(None),
     video_url: Optional[str] = Form(None),
     camera_rtsp_url: Optional[str] = Form(None),
+    pick_id: Optional[str] = Form(None),
     lang: Optional[str] = Form("vi"),
     court_distance: Optional[str] = Form("near"),
     player_position: Optional[str] = Form("auto"),
@@ -476,7 +496,7 @@ def analyze_video(
     else:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp File Video để đảm bảo chất lượng bóc tách!")
 
-    BACKGROUND_TASKS_STORE[task_id] = {"status": "PROCESSING", "message": "Commercial Engine V4.1 is auditing"}
+    BACKGROUND_TASKS_STORE[task_id] = {"status": "PROCESSING", "message": "PVR AI Engine V5.0 is auditing"}
 
     background_tasks.add_task(
         process_video_async_task,
@@ -495,6 +515,7 @@ def analyze_video(
         winrate_val,
         winrate_source,
         profile_result_url,
+        pick_id,
         custom_kitchen_y,
         src_homography_pts,
         True,
@@ -509,7 +530,7 @@ def analyze_video(
         "task_id": task_id,
         "status": "PROCESSING",
         "check_status_url": f"/api/task-status/{task_id}",
-        "engine_version": "V4.1 PVNA Calibrated"
+        "engine_version": "V5.0 PVR Verified"
     }
 
 @app.get("/api/task-status/{task_id}")
