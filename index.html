@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pickleball AI Passport - Tournament Partner Portal</title>
+  <title>PVR AI Passport - Pickleball Verified Rating</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -30,6 +30,28 @@
       min-height: 100vh;
     }
 
+    .top-nav-bar {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ext {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-ext-home { background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; }
+    .btn-ext-hub { background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; }
+
     .app-header {
       width: 100%;
       max-width: 650px;
@@ -42,7 +64,7 @@
     }
 
     .brand-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: var(--accent-blue);
       display: flex;
@@ -164,6 +186,7 @@
       box-sizing: border-box;
       outline: none;
     }
+    .form-control:focus { border-color: var(--accent-blue); }
 
     .input-mode-tabs {
       display: flex;
@@ -289,6 +312,8 @@
       border-bottom: 1px solid #334155;
       padding-bottom: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .badge-certified {
@@ -444,9 +469,18 @@
 </head>
 <body>
 
+  <div class="top-nav-bar">
+    <button type="button" class="btn-ext btn-ext-home" onclick="navigateOutside('https://sites.google.com/icdalat.edu.vn/pickleballai/pickle-ball-ai')">
+      🏠 Trang Chủ PVR
+    </button>
+    <button type="button" class="btn-ext btn-ext-hub" onclick="navigateOutside('https://sites.google.com/icdalat.edu.vn/pickleballai/gi%E1%BA%A3i-%C4%91%E1%BA%A5u-v%C3%A0-livestream')">
+      🏆 Cổng Giải Đấu & Live Hub
+    </button>
+  </div>
+
   <div class="app-header">
     <div class="brand-title">
-      <i class="fa-solid fa-award"></i> AI PASSPORT - PICKLEBALL RATING
+      <i class="fa-solid fa-award" style="color:var(--accent-gold);"></i> PVR AI PASSPORT - PICK-ID VERIFIED
     </div>
     <button class="btn-lang" id="langBtn" onclick="toggleLanguage()">🌐 VI / EN</button>
   </div>
@@ -456,33 +490,33 @@
     <!-- CỔNG XÁC THỰC MÃ ĐỐI TÁC / BAN TỔ CHỨC -->
     <div class="access-gate-card" id="accessGateCard">
       <i class="fa-solid fa-shield-halved" style="font-size:36px; color:var(--accent-gold); margin-bottom:10px;"></i>
-      <h3 style="margin:0 0 6px 0; font-size:16px; color:#fff;" data-vi="CỔNG THẨM ĐỊNH DÀNH CHO BAN TỔ CHỨC" data-en="TOURNAMENT ORGANIZER PORTAL">
-        CỔNG THẨM ĐỊNH DÀNH CHO BAN TỔ CHỨC
+      <h3 style="margin:0 0 6px 0; font-size:16px; color:#fff;" data-vi="CỔNG THẨM ĐỊNH TRÌNH PVR DÀNH CHO BAN TỔ CHỨC" data-en="PVR TOURNAMENT ORGANIZER PORTAL">
+        CỔNG THẨM ĐỊNH TRÌNH PVR DÀNH CHO BAN TỔ CHỨC
       </h3>
-      <p style="font-size:12px; color:var(--text-muted); margin:0 auto; max-width:420px; line-height:1.5;" data-vi="Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI." data-en="Please enter your issued Tournament Access Code to unlock the AI Rating Engine.">
-        Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI.
+      <p style="font-size:12px; color:var(--text-muted); margin:0 auto; max-width:420px; line-height:1.5;" data-vi="Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI PVR." data-en="Please enter your issued Tournament Access Code to unlock the PVR AI Rating Engine.">
+        Vui lòng nhập Mã Giải Đấu (Tournament Access Code) được cấp để mở khóa hệ thống chấm điểm AI PVR.
       </p>
       <input type="text" id="accessCodeInput" class="access-input" placeholder="NHẬP MÃ..." onkeypress="if(event.key==='Enter') verifyAccessCode()">
       <div id="accessErrorMsg" style="display:none; color:#f87171; font-size:12px; font-weight:600; margin-bottom:10px;" data-vi="❌ Mã truy cập không hợp lệ hoặc đã hết hạn!" data-en="❌ Invalid or expired access code!">
         ❌ Mã truy cập không hợp lệ hoặc đã hết hạn!
       </div>
-      <button type="button" class="btn-submit" style="max-width:280px; margin:0 auto;" onclick="verifyAccessCode()" data-vi="🔓 MỞ KHÓA HỆ THỐNG" data-en="🔓 UNLOCK ENGINE">
-        🔓 MỞ KHÓA HỆ THỐNG
+      <button type="button" class="btn-submit" style="max-width:280px; margin:0 auto;" onclick="verifyAccessCode()" data-vi="🔓 MỞ KHÓA HỆ THỐNG PVR" data-en="🔓 UNLOCK PVR ENGINE">
+        🔓 MỞ KHÓA HỆ THỐNG PVR
       </button>
     </div>
     
-    <!-- FORM CHẤM ĐIỂM CHÍNH (ẨN CHO TỚI KHI NHẬP ĐÚNG MÃ) -->
+    <!-- FORM CHẤM ĐIỂM CHÍNH -->
     <div class="card" id="formCard" style="display:none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 class="card-title" style="margin:0;" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT" data-en="⚡ AI PASSPORT RATING VERIFICATION">
-          ⚡ SÁT HẠCH TRÌNH ĐỘ AI PASSPORT
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <h3 class="card-title" style="margin:0;" data-vi="⚡ SÁT HẠCH TRÌNH ĐỘ PVR & CẤP THẺ PICK-ID" data-en="⚡ PVR RATING & PICK-ID VERIFICATION">
+          ⚡ SÁT HẠCH TRÌNH ĐỘ PVR & CẤP THẺ PICK-ID
         </h3>
         <span id="activePartnerBadge" style="background:rgba(16,185,129,0.2); border:1px solid var(--accent-green); color:var(--accent-green); font-size:10px; font-weight:800; padding:3px 8px; border-radius:12px;">
-          ✔ PARTNER VERIFIED
+          ✔ PVR PARTNER VERIFIED
         </span>
       </div>
-      <div class="card-subtitle" data-vi="Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu." data-en="Select preset traits or click '+ Custom' for precise AI tracking.">
-        Chọn các đặc điểm bên dưới hoặc bấm '+ Tự Nhập Khác' để AI định vị chính xác mục tiêu.
+      <div class="card-subtitle" data-vi="AI phân tích động học cơ thể (Biomechanics) và đồng bộ trực tiếp vào hồ sơ căn cước PICK-ID chống rửa điểm." data-en="AI analyzes biomechanics and syncs directly to your PICK-ID profile.">
+        AI phân tích động học cơ thể (Biomechanics) và đồng bộ trực tiếp vào hồ sơ căn cước PICK-ID chống rửa điểm.
       </div>
 
       <!-- BANNER NÚT MỞ HƯỚNG DẪN GHI HÌNH CHUẨN AI -->
@@ -495,6 +529,21 @@
       </button>
 
       <form id="rating-form">
+        <!-- 0. THÔNG TIN ĐỊNH DANH PICK-ID -->
+        <div class="form-group" style="background:#0f172a; padding:12px; border-radius:10px; border:1px solid var(--accent-gold);">
+          <label style="color:var(--accent-gold); margin-bottom:6px;" data-vi="🪪 Định Danh Căn Cước VĐV (PICK-ID - Chống 1 Số Nhiều Nick):" data-en="🪪 Athlete Identity (PICK-ID):">
+            🪪 Định Danh Căn Cước VĐV (PICK-ID - Chống 1 Số Nhiều Nick):
+          </label>
+          <div class="grid-2">
+            <div>
+              <input type="text" id="vdv_full_name" class="form-control" placeholder="Họ và Tên VĐV (VD: Nguyễn Văn A)...">
+            </div>
+            <div>
+              <input type="tel" id="vdv_phone_id" class="form-control" placeholder="Số Điện Thoại định danh PICK-ID...">
+            </div>
+          </div>
+        </div>
+
         <!-- 1. Video -->
         <div class="form-group">
           <label data-vi="1. Phương Thức Tải Video Bài Test (Khuyên dùng video 30s-1p):" data-en="1. Video Input (30s-1m recommended):">1. Phương Thức Tải Video Bài Test (Khuyên dùng video 30s-1p):</label>
@@ -622,8 +671,8 @@
           </div>
         </div>
 
-        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 KIỂM ĐỊNH RATING AI PASSPORT" data-en="🚀 VERIFY AI PASSPORT RATING">
-          🚀 KIỂM ĐỊNH RATING AI PASSPORT
+        <button type="button" class="btn-submit" id="btnSubmit" onclick="startAIAnalysis()" data-vi="🚀 KIỂM ĐỊNH RATING PVR & CẤP PICK-ID" data-en="🚀 VERIFY PVR RATING & ISSUE PICK-ID">
+          🚀 KIỂM ĐỊNH RATING PVR & CẤP PICK-ID
         </button>
       </form>
     </div>
@@ -631,8 +680,8 @@
     <!-- Status Box -->
     <div class="status-box" id="statusBox">
       <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent-gold); font-size:22px; margin-bottom:10px;"></i>
-      <div id="statusText" data-vi="AI đang định vị khớp sinh học & chấm điểm Biomechanics (3 - 7 giây)..." data-en="AI calculating biomechanics & rating (3-7s)...">
-        AI đang định vị khớp sinh học & chấm điểm Biomechanics (3 - 7 giây)...
+      <div id="statusText" data-vi="AI đang định vị khớp sinh học & chấm điểm chuẩn PVR (3 - 7 giây)..." data-en="AI calculating biomechanics & PVR rating (3-7s)...">
+        AI đang định vị khớp sinh học & chấm điểm chuẩn PVR (3 - 7 giây)...
       </div>
     </div>
 
@@ -640,10 +689,13 @@
     <div class="passport-card" id="passportCard">
       <div class="passport-header">
         <div>
-          <span class="badge-certified" data-vi="✔ AI PASSPORT OFFICIALLY VERIFIED" data-en="✔ AI PASSPORT OFFICIALLY VERIFIED">✔ AI PASSPORT OFFICIALLY VERIFIED</span>
-          <div style="display:flex; align-items:center; margin-top:6px;">
-            <h3 style="margin:0; color:var(--accent-gold); font-size:24px;" id="resRating">2.75 AI-RATING</h3>
-            <span class="dupr-badge" id="resDupr">DUPR 2.71</span>
+          <span class="badge-certified" data-vi="✔ PVR OFFICIALLY VERIFIED" data-en="✔ PVR OFFICIALLY VERIFIED">✔ PVR OFFICIALLY VERIFIED</span>
+          <div style="display:flex; align-items:center; margin-top:6px; flex-wrap:wrap; gap:4px;">
+            <h3 style="margin:0; color:var(--accent-gold); font-size:24px;" id="resRating">3.10 PVR</h3>
+            <span class="dupr-badge" id="resDupr">DUPR 2.98</span>
+          </div>
+          <div style="font-size:11px; color:#10b981; font-weight:700; margin-top:4px;" id="resFloorLock">
+            🛡️ Khóa sàn chống rửa điểm: 2.95 PVR
           </div>
         </div>
         <div style="text-align:right;">
@@ -675,9 +727,9 @@
       <div class="qr-section">
         <div class="qr-container" id="qrContainer"></div>
         <div>
-          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">ID: AI-PASS-TEST</div>
-          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số niêm phong kiểm định AI PASSPORT. Quét mã QR để đối soát thực địa." data-en="Digitally sealed by AI PASSPORT. Scan to verify on court.">
-            Chữ ký số niêm phong kiểm định AI PASSPORT. Quét mã QR để đối soát thực địa.
+          <div style="font-weight:800; color:var(--accent-gold); font-size:13px;" id="resPlayerId">PICK-ID: PICK-VERIFIED</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;" data-vi="Chữ ký số niêm phong kiểm định PVR (Pickleball Verified Rating). Quét mã QR để đối soát thực địa tại giải." data-en="Digitally sealed by PVR (Pickleball Verified Rating). Scan QR to verify on court.">
+            Chữ ký số niêm phong kiểm định PVR (Pickleball Verified Rating). Quét mã QR để đối soát thực địa tại giải.
           </div>
         </div>
       </div>
@@ -691,7 +743,7 @@
       <div class="modal-header">
         <h3>
           <i class="fa-solid fa-camera-rotate"></i>
-          <span data-vi="Quy Chuẩn Ghi Hình Chấm Điểm AI PASSPORT" data-en="AI PASSPORT Video Recording Standards">Quy Chuẩn Ghi Hình Chấm Điểm AI PASSPORT</span>
+          <span data-vi="Quy Chuẩn Ghi Hình Chấm Điểm PVR" data-en="PVR Video Recording Standards">Quy Chuẩn Ghi Hình Chấm Điểm PVR</span>
         </h3>
         <button type="button" class="close-btn" onclick="closeRecordingGuideModal()">×</button>
       </div>
@@ -734,9 +786,9 @@
 
 <script>
   const API_BASE_URL = 'https://pickleball-ai-engine-wao0.onrender.com';
+  const GOOGLE_SCRIPT_BACKEND = 'https://script.google.com/macros/s/AKfycbxdbDL6iWtXsrq_a1TzqJ9u_yTTI5dEQxUjI8_2eXjyHmERd5G7A-FpTFdDIjUUjwOzfw/exec';
   
-  // DANH SÁCH MÃ ĐỐI TÁC HỢP LỆ (Bạn có thể thêm mã mới cho từng giải đấu)
-  const VALID_ACCESS_CODES = ['DALAT2026', 'AIPASS88', 'PILOT2026'];
+  const VALID_ACCESS_CODES = ['DALAT2026', 'AIPASS88', 'PILOT2026', 'PVR2026'];
 
   let currentLang = 'vi';
   let activeVideoMode = 'file';
@@ -760,11 +812,20 @@
 
   let lastPassportData = null;
 
+  function navigateOutside(url) {
+    try {
+      if (window.top && window.top.location) window.top.location.href = url;
+      else window.open(url, '_top');
+    } catch (e) {
+      window.open(url, '_blank');
+    }
+  }
+
   function verifyAccessCode() {
     const inputVal = document.getElementById('accessCodeInput').value.trim().toUpperCase();
     const errorMsg = document.getElementById('accessErrorMsg');
     if (VALID_ACCESS_CODES.includes(inputVal)) {
-      sessionStorage.setItem('ai_passport_unlocked', inputVal);
+      sessionStorage.setItem('pvr_passport_unlocked', inputVal);
       unlockPlatformUI(inputVal);
     } else {
       errorMsg.style.display = 'block';
@@ -789,9 +850,7 @@
 
   window.addEventListener('click', (e) => {
     const modal = document.getElementById('recordingGuideModal');
-    if (e.target === modal) {
-      modal.style.display = 'none';
-    }
+    if (e.target === modal) modal.style.display = 'none';
   });
 
   function switchVideoMode(mode) {
@@ -909,20 +968,28 @@
   }
 
   function calculateDUPR(ratingString, tierVal) {
-    const numericRating = parseFloat(ratingString) || 2.75;
+    const numericRating = parseFloat(ratingString) || 3.10;
     const currentTier = tierVal || document.getElementById('player_tier').value;
 
     if (currentTier === 'pro') {
-      let proDupr = 7.00 + ((numericRating - 4.0) * 0.8) + 0.25;
-      return `DUPR ${Math.min(7.55, proDupr).toFixed(2)}`;
+      let proDupr = 6.50 + ((numericRating - 4.0) * 0.7) + 0.20;
+      return `DUPR ${Math.min(7.50, proDupr).toFixed(2)}`;
     }
-    const standardDupr = Math.max(1.0, Math.min(6.0, numericRating - 0.04));
+    const standardDupr = Math.max(2.00, Math.min(5.85, numericRating - 0.12));
     return `DUPR ${standardDupr.toFixed(2)}`;
   }
 
   async function startAIAnalysis() {
     const formData = new FormData();
     formData.append('lang', currentLang);
+
+    const vdvName = document.getElementById('vdv_full_name').value.trim();
+    const vdvPhone = document.getElementById('vdv_phone_id').value.trim().replace(/[^0-9]/g, '');
+
+    if (vdvPhone && vdvPhone.length >= 9) {
+      const customPickId = `PICK-${vdvPhone.slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
+      formData.append('pick_id', customPickId);
+    }
 
     if (activeVideoMode === 'file') {
       const fileInput = document.getElementById('video_file');
@@ -977,7 +1044,7 @@
       const data = await res.json();
 
       if (res.ok && data.success && data.task_id) {
-        pollTaskStatus(data.task_id);
+        pollTaskStatus(data.task_id, vdvName, vdvPhone);
       } else {
         const errDetail = data.detail || data.message || 'Không thể xử lý video!';
         alert(`❌ Thất bại: ${errDetail}`);
@@ -994,60 +1061,87 @@
     }
   }
 
-  function renderPassportCard(resData) {
+  function renderPassportCard(resData, vdvName = '', vdvPhone = '') {
     lastPassportData = resData;
     document.getElementById('statusBox').style.display = 'none';
     document.getElementById('btnSubmit').disabled = false;
     document.getElementById('passportCard').style.display = 'block';
 
     const selectedTierKey = resData.player_tier || resData.tierKey || document.getElementById('player_tier').value;
+    const bioAudit = resData.biomechanics_audit || {};
 
-    let ratingVal = resData.calculated_rating;
-    let compositeValRaw = resData.overall_composite_score || resData.c || '75.0';
-
+    // Đọc chuẩn chỉ số Biomechanics (tương thích cả V5.0 và V4.1)
+    let compositeValRaw = resData.biomechanics_score_100 || bioAudit.score_100 || resData.overall_composite_score || resData.c || '75.0';
     if (typeof compositeValRaw === 'string' && compositeValRaw.includes('/')) {
       compositeValRaw = compositeValRaw.split('/')[0].trim();
     }
 
-    if (!ratingVal) {
+    // Đọc chuẩn điểm PVR (75/100 -> 3.10 PVR)
+    let numericScore = parseFloat(resData.pvr_score || resData.pvna_score);
+    if (!numericScore && resData.calculated_rating) {
+      numericScore = parseFloat(resData.calculated_rating.split(' ')[0]);
+    }
+    if (!numericScore) {
       const compNum = parseFloat(compositeValRaw) || 75.0;
-      const pureScore = (2.0 + (compNum / 100.0) * 1.0).toFixed(2);
-      ratingVal = `${pureScore} AI-RATING`;
-    } else {
-      ratingVal = ratingVal.replace('PVNA', 'AI-RATING');
+      numericScore = parseFloat((2.25 + ((compNum - 35.0) / 65.0) * 1.35).toFixed(2));
     }
 
-    const numericScoreStr = ratingVal.split(' ')[0];
-    const duprVal = calculateDUPR(numericScoreStr, selectedTierKey);
+    const ratingVal = `${numericScore.toFixed(2)} PVR`;
+    const floorLockVal = parseFloat(resData.peak_floor_lock) || Math.max(2.00, numericScore - 0.15);
+    const duprVal = resData.dupr_rating || calculateDUPR(numericScore.toFixed(2), selectedTierKey);
     const tierVal = resData.tournament_tier || resData.t || getTierLabel(selectedTierKey, currentLang);
-    const elbowVal = resData.avg_elbow_angle || resData.e || '114.2°';
-    const kneeVal = resData.avg_knee_angle || resData.k || '132.0°';
-    let playerIdVal = (resData.qr_certified_data ? resData.qr_certified_data.player_id : resData.id) || 'AI-PASS-VERIFIED';
-    playerIdVal = playerIdVal.replace('PVNA-LD', 'AI-PASS').replace('PVNA-TN', 'AI-PASS');
 
-    const targetText = resData.vp || getSelectedVisualProfile(currentLang);
+    const elbowVal = bioAudit.avg_elbow_angle || resData.avg_elbow_angle || resData.e || '114.2°';
+    const kneeVal = bioAudit.avg_knee_angle || resData.avg_knee_angle || resData.k || '132.0°';
 
-    document.getElementById('resTargetIdentity').innerText = targetText;
+    let pickIdVal = resData.pick_id || (resData.qr_certified_seal ? resData.qr_certified_seal.pick_id : null) || resData.player_id || resData.id || 'PICK-VERIFIED';
+    pickIdVal = pickIdVal.replace('PVNA-LD', 'PICK').replace('PVNA-TN', 'PICK').replace('PKL-', 'PICK-');
+
+    const visualText = resData.vp || getSelectedVisualProfile(currentLang);
+    const identityHeader = vdvName ? `<strong>${vdvName}</strong> ${vdvPhone ? '(' + vdvPhone + ')' : ''}<br>` : '';
+
+    document.getElementById('resTargetIdentity').innerHTML = `${identityHeader}${visualText}`;
     document.getElementById('resRating').innerText = ratingVal;
     document.getElementById('resDupr').innerText = duprVal;
+    document.getElementById('resFloorLock').innerText = currentLang === 'vi'
+      ? `🛡️ Khóa sàn chống rửa điểm: ${floorLockVal.toFixed(2)} PVR`
+      : `🛡️ Anti-Sandbagging Floor: ${floorLockVal.toFixed(2)} PVR`;
     document.getElementById('resTier').innerText = tierVal;
     document.getElementById('resElbow').innerText = elbowVal;
     document.getElementById('resKnee').innerText = kneeVal;
     document.getElementById('resComposite').innerText = `${compositeValRaw}/100`;
-    document.getElementById('resPlayerId').innerText = `ID: ${playerIdVal}`;
+    document.getElementById('resPlayerId').innerText = `PICK-ID: ${pickIdVal}`;
 
-    const numR = parseFloat(numericScoreStr) || 2.75;
-    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 2.71;
+    // Đồng bộ hồ sơ PICK-ID lên Google Sheet nếu VĐV có nhập Họ tên & SĐT
+    if (vdvName && vdvPhone && vdvPhone.length >= 9) {
+      fetch(GOOGLE_SCRIPT_BACKEND, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'registerWaitlist',
+          name: vdvName,
+          phone: vdvPhone,
+          declaredRating: numericScore.toFixed(2),
+          eventName: 'AI Video Audit',
+          skill: `Kiểm định Video AI PVR: ${numericScore.toFixed(2)} PVR (${duprVal}) - PICK-ID: ${pickIdVal}`,
+          location: 'AI_PASSPORT_AUDIT',
+          playersDetail: [{ name: vdvName, phone: vdvPhone, rating: numericScore.toFixed(2) }]
+        })
+      }).catch(() => {});
+    }
+
+    const numR = numericScore;
+    const numD = parseFloat(duprVal.replace('DUPR ', '')) || 2.98;
     const numE = parseFloat(elbowVal) || 114.2;
     const numK = parseFloat(kneeVal) || 132.0;
     const numC = parseFloat(compositeValRaw) || 75.0;
 
-    const encVp = btoa(encodeURIComponent(targetText));
+    const encVp = btoa(encodeURIComponent(visualText));
     const shortPayload = `${numR},${numD},${numE},${numK},${numC},${currentLang},${selectedTierKey},${encVp}`;
 
     const baseUrl = window.location.protocol.startsWith('http') 
       ? `${window.location.origin}${window.location.pathname}` 
-      : 'https://hoai-bot.github.io/pickleball-ai-engine/';
+      : 'https://sites.google.com/icdalat.edu.vn/pickleball-ai-platform/home';
 
     const passportWebUrl = `${baseUrl}?p=${shortPayload}`;
 
@@ -1064,7 +1158,7 @@
     });
   }
 
-  async function pollTaskStatus(taskId) {
+  async function pollTaskStatus(taskId, vdvName = '', vdvPhone = '') {
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/task-status/${taskId}`);
@@ -1072,7 +1166,7 @@
 
         if (data.status === 'COMPLETED') {
           clearInterval(interval);
-          renderPassportCard(data.result);
+          renderPassportCard(data.result, vdvName, vdvPhone);
         } else if (data.status === 'FAILED') {
           clearInterval(interval);
           alert(`❌ Phân tích AI gặp lỗi: ${data.error || 'Lỗi xử lý video'}`);
@@ -1090,7 +1184,6 @@
     const pPayload = urlParams.get('p');
     const urlCode = urlParams.get('code');
 
-    // 1. Nếu quét QR thẻ kết quả -> Hiển thị thẻ công khai ngay không cần mật khẩu
     if (pPayload) {
       try {
         const parts = pPayload.split(',');
@@ -1113,14 +1206,15 @@
           document.getElementById('formCard').style.display = 'none';
 
           renderPassportCard({
-            calculated_rating: `${r} AI-RATING`,
-            overall_composite_score: c,
+            pvr_score: parseFloat(r),
+            dupr_rating: `DUPR ${d}`,
+            biomechanics_score_100: c,
             avg_elbow_angle: `${e}°`,
             avg_knee_angle: `${k}°`,
             tierKey: tierKey,
             t: getTierLabel(tierKey, currentLang),
             vp: decodedVp,
-            id: 'AI-PASS-VERIFIED'
+            pick_id: 'PICK-VERIFIED'
           });
           return;
         }
@@ -1129,10 +1223,9 @@
       }
     }
 
-    // 2. Nếu có truyền sẵn ?code=DALAT2026 trên URL hoặc đã mở khóa trong phiên -> Tự mở khóa
-    const savedCode = sessionStorage.getItem('ai_passport_unlocked');
+    const savedCode = sessionStorage.getItem('pvr_passport_unlocked');
     if (urlCode && VALID_ACCESS_CODES.includes(urlCode.toUpperCase())) {
-      sessionStorage.setItem('ai_passport_unlocked', urlCode.toUpperCase());
+      sessionStorage.setItem('pvr_passport_unlocked', urlCode.toUpperCase());
       unlockPlatformUI(urlCode.toUpperCase());
     } else if (savedCode && VALID_ACCESS_CODES.includes(savedCode)) {
       unlockPlatformUI(savedCode);
