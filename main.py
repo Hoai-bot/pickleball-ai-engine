@@ -8,13 +8,13 @@ import time
 import uuid
 import urllib.request
 import numpy as np
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="PVR AI Enterprise Engine - High-Speed Pay-Per-Video V6.1",
-    version="6.1.0"
+    title="PVR AI Enterprise Engine - Dynamic Tracking V6.2",
+    version="6.2.0"
 )
 
 app.add_middleware(
@@ -116,16 +116,73 @@ def verify_and_scrape_profile(profile_url: str):
         return None, "LINK_OFFLINE_OR_PRIVATE"
 
 
-def crop_roi_for_target_player(frame, court_distance: str, player_position: str):
-    h, w, _ = frame.shape
+def extract_torso_color_hsv(frame, norm_cx: float, norm_cy: float) -> Optional[np.ndarray]:
+    """Lấy mẫu màu áo tại vùng thân trên (ngay trên tâm hông) để khóa nhận diện khi đổi bên."""
+    try:
+        h, w, _ = frame.shape
+        px = int(np.clip(norm_cx * w, 0, w - 1))
+        py = int(np.clip((norm_cy - 0.08) * h, 0, h - 1))
+        box = max(8, int(w * 0.03))
+        patch = frame[max(0, py - box):min(h, py + box), max(0, px - box):min(w, px + box)]
+        if patch.size == 0:
+            return None
+        hsv_patch = cv2.cvtColor(patch, cv2.COLOR_BGR2HSV)
+        return np.mean(hsv_patch.reshape(-1, 3), axis=0)
+    except Exception:
+        return None
+
+
+def get_dynamic_roi_box(
+    frame_shape: Tuple[int, int, int],
+    court_distance: str,
+    player_position: str,
+    tracked_center: Optional[Tuple[float, float]]
+) -> Tuple[int, int, int, int]:
+    """
+    Tính khung cắt động (x1, y1, x2, y2):
+    - Nếu chưa khóa được VĐV (khung đầu): cắt theo góc sân khởi đầu (near/far + left/right).
+    - Nếu đã khóa được VĐV: tạo cửa sổ trượt bám theo tọa độ thực tế của VĐV trên toàn sân.
+    """
+    h, w, _ = frame_shape
     dist = str(court_distance).lower()
     pos = str(player_position).lower()
 
-    y1, y2 = (int(h * 0.35), h) if dist == "near" else ((0, int(h * 0.65)) if dist == "far" else (0, h))
-    x1, x2 = (0, int(w * 0.70)) if pos == "left" else ((int(w * 0.30), w) if pos == "right" else (0, w))
+    # Giới hạn chiều dọc theo nửa sân (gần hoặc xa) để không bắt nhầm đối thủ bên kia lưới
+    if dist == "near":
+        court_y1, court_y2 = int(h * 0.30), h
+    elif dist == "far":
+        court_y1, court_y2 = 0, int(h * 0.68)
+    else:
+        court_y1, court_y2 = 0, h
 
-    roi = frame[y1:y2, x1:x2]
-    return roi if roi.size > 0 else frame
+    if tracked_center is None:
+        # Khung hình đầu: tìm tại vị trí đứng xuất phát
+        x1 = 0 if pos == "left" else (int(w * 0.32) if pos == "right" else 0)
+        x2 = int(w * 0.68) if pos == "left" else w
+        return x1, court_y1, x2, court_y2
+
+    # Cửa sổ trượt động (rộng ~48% chiều ngang khung hình) luôn lấy VĐV làm tâm
+    cx, cy = tracked_center
+    half_win_w = int(w * 0.24)
+    half_win_h = int(h * 0.28)
+
+    px = int(cx * w)
+    py = int(cy * h)
+
+    x1 = max(0, px - half_win_w)
+    x2 = min(w, px + half_win_w)
+    y1 = max(court_y1, py - half_win_h)
+    y2 = min(court_y2, py + half_win_h)
+
+    # Đảm bảo khung cắt đủ rộng tối thiểu
+    if (x2 - x1) < int(w * 0.25):
+        x1 = max(0, px - int(w * 0.20))
+        x2 = min(w, px + int(w * 0.20))
+    if (y2 - y1) < int(h * 0.25):
+        y1 = court_y1
+        y2 = court_y2
+
+    return x1, y1, x2, y2
 
 
 def compute_professional_biomechanics(
@@ -142,7 +199,6 @@ def compute_professional_biomechanics(
         )
     )
 
-    # Tự động chọn tay cầm vợt (tay có biên độ vung động học lớn hơn và đủ mẫu)
     r_std = float(np.std(r_elbow_list)) if len(r_elbow_list) >= 3 else 0.0
     l_std = float(np.std(l_elbow_list)) if len(l_elbow_list) >= 3 else 0.0
     elbow_angles = r_elbow_list if (r_std >= l_std and len(r_elbow_list) >= 3) else (
@@ -230,10 +286,13 @@ def run_video_audit_pipeline(
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     max_frames_to_scan = min(total_frames, int(fps * 60)) if total_frames > 0 else 900
-    target_samples = 28
+    target_samples = 30
     frame_step = max(2, max_frames_to_scan // target_samples)
 
     r_elbow_angles, l_elbow_angles, knee_angles, hip_y_positions = [], [], [], []
+    tracked_center: Optional[Tuple[float, float]] = None
+    target_hsv_ref: Optional[np.ndarray] = None
+    lost_frames = 0
 
     try:
         if MP_POSE_MODULE is not None:
@@ -259,19 +318,57 @@ def run_video_audit_pipeline(
                         continue
 
                     sampled_count += 1
-                    roi_frame = crop_roi_for_target_player(frame, court_distance, player_position)
+                    full_h, full_w, _ = frame.shape
+
+                    # Lấy khung cắt động (khởi đầu tại góc khai báo, sau đó trượt theo VĐV sang trái/phải)
+                    x1, y1, x2, y2 = get_dynamic_roi_box(frame.shape, court_distance, player_position, tracked_center)
+                    roi_frame = frame[y1:y2, x1:x2]
+                    if roi_frame.size == 0:
+                        continue
+
                     rh, rw, _ = roi_frame.shape
                     if rw > 480:
                         scale = 480.0 / rw
-                        roi_frame = cv2.resize(roi_frame, (480, int(rh * scale)), interpolation=cv2.INTER_LINEAR)
+                        proc_frame = cv2.resize(roi_frame, (480, int(rh * scale)), interpolation=cv2.INTER_LINEAR)
+                    else:
+                        proc_frame = roi_frame
 
-                    rgb_frame = cv2.cvtColor(roi_frame, cv2.COLOR_BGR2RGB)
+                    rgb_frame = cv2.cvtColor(proc_frame, cv2.COLOR_BGR2RGB)
                     results = pose.process(rgb_frame)
 
                     if results.pose_landmarks:
                         lm = results.pose_landmarks.landmark
 
-                        # Đo độc lập cả 2 tay để tự tìm tay cầm vợt
+                        # Quy đổi tọa độ tâm hông về hệ tọa độ chuẩn [0..1] của toàn khung hình
+                        mid_hip_roi_x = (lm[MP_POSE_MODULE.PoseLandmark.RIGHT_HIP.value].x + lm[MP_POSE_MODULE.PoseLandmark.LEFT_HIP.value].x) / 2.0
+                        mid_hip_roi_y = (lm[MP_POSE_MODULE.PoseLandmark.RIGHT_HIP.value].y + lm[MP_POSE_MODULE.PoseLandmark.LEFT_HIP.value].y) / 2.0
+
+                        global_cx = (x1 + mid_hip_roi_x * (x2 - x1)) / full_w
+                        global_cy = (y1 + mid_hip_roi_y * (y2 - y1)) / full_h
+
+                        # Kiểm tra màu áo khi 2 đồng đội lướt qua nhau đổi bên
+                        cur_hsv = extract_torso_color_hsv(frame, global_cx, global_cy)
+                        is_same_player = True
+
+                        if target_hsv_ref is None and cur_hsv is not None:
+                            target_hsv_ref = cur_hsv
+                        elif target_hsv_ref is not None and cur_hsv is not None and tracked_center is not None:
+                            move_dist = math.hypot(global_cx - tracked_center[0], global_cy - tracked_center[1])
+                            color_diff = float(np.linalg.norm(cur_hsv[:2] - target_hsv_ref[:2]))
+                            # Nếu tâm nhảy đột ngột > 22% màn hình VÀ màu áo khác hẳn -> đang bắt nhầm đồng đội
+                            if move_dist > 0.22 and color_diff > 55.0:
+                                is_same_player = False
+
+                        if not is_same_player:
+                            lost_frames += 1
+                            if lost_frames >= 3:
+                                tracked_center = None  # Mở rộng lại vùng tìm kiếm nếu mất dấu quá 3 nhịp
+                            continue
+
+                        lost_frames = 0
+                        tracked_center = (global_cx, global_cy)
+
+                        # Đo góc kỹ thuật của VĐV đã khóa
                         if lm[MP_POSE_MODULE.PoseLandmark.RIGHT_ELBOW.value].visibility >= 0.45:
                             r_sh = [lm[MP_POSE_MODULE.PoseLandmark.RIGHT_SHOULDER.value].x, lm[MP_POSE_MODULE.PoseLandmark.RIGHT_SHOULDER.value].y]
                             r_el = [lm[MP_POSE_MODULE.PoseLandmark.RIGHT_ELBOW.value].x, lm[MP_POSE_MODULE.PoseLandmark.RIGHT_ELBOW.value].y]
@@ -288,7 +385,6 @@ def run_video_audit_pipeline(
                             if 40.0 <= le_ang <= 175.0:
                                 l_elbow_angles.append(le_ang)
 
-                        # Đo chân có độ rõ nét cao hơn
                         use_right_leg = (
                             lm[MP_POSE_MODULE.PoseLandmark.RIGHT_KNEE.value].visibility >=
                             lm[MP_POSE_MODULE.PoseLandmark.LEFT_KNEE.value].visibility
@@ -305,7 +401,11 @@ def run_video_audit_pipeline(
                         k_ang = calculate_angle(hp, kn, ak)
                         if 70.0 <= k_ang <= 178.0:
                             knee_angles.append(k_ang)
-                        hip_y_positions.append(hp[1])
+                        hip_y_positions.append(global_cy)
+                    else:
+                        lost_frames += 1
+                        if lost_frames >= 3:
+                            tracked_center = None
     finally:
         cap.release()
         if os.path.exists(temp_video_path):
@@ -372,7 +472,7 @@ def run_video_audit_pipeline(
         "dupr_rating": dupr_str,
         "dupr_score": dupr_val,
         "biomechanics_score_100": bio_results["bio_percent"],
-        "legal_disclaimer": "Certified Pickleball Verified Rating (PVR) by AI Enterprise Engine V6.1.",
+        "legal_disclaimer": "Certified Pickleball Verified Rating (PVR) by AI Enterprise Engine V6.2.",
         "data_authenticity": {
             "profile_verification": verification_status,
             "confidence_score": f"{round(min(1.0, max(0.75, total_cnt / 30.0)) * 100, 1)}%",
@@ -398,7 +498,7 @@ def run_video_audit_pipeline(
 
 @app.get("/")
 def health_check():
-    return {"status": "ONLINE", "engine": "PVR AI Fast-Engine V6.1 (Cloud Run Pay-Per-Video Optimized)"}
+    return {"status": "ONLINE", "engine": "PVR AI Dynamic-Tracking Engine V6.2"}
 
 
 @app.post("/api/analyze-video")
@@ -450,7 +550,6 @@ def analyze_video(
     else:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp File Video hoặc Link URL!")
 
-    # Chạy trực tiếp trong request để Cloud Run cấp 100% CPU và không bị ngắt khi trả response
     result_payload = run_video_audit_pipeline(
         temp_video_path=temp_video_path,
         court_distance=court_distance,
@@ -463,7 +562,6 @@ def analyze_video(
         custom_pick_id=pick_id
     )
 
-    # Giữ cache ngắn hạn (tối đa 50 kết quả) để tương thích hàm pollTaskStatus ở frontend
     if len(RESULTS_CACHE) > 50:
         RESULTS_CACHE.clear()
     RESULTS_CACHE[task_id] = {"status": "COMPLETED", "result": result_payload}
@@ -474,7 +572,7 @@ def analyze_video(
         "status": "COMPLETED",
         "result": result_payload,
         "check_status_url": f"/api/task-status/{task_id}",
-        "engine_version": "V6.1 PVR Cloud-Run Fast-Engine"
+        "engine_version": "V6.2 PVR Dynamic-Tracking"
     }
 
 
